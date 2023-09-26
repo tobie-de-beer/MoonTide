@@ -43,6 +43,7 @@ class MoonTideView extends WatchUi.WatchFace {
 
 // We only update every 10 min except for steps and stairs
         if (NowTime.compare(LastCalcTime) >= 60) { // only once a minute! except for steps and stairs - see last bit
+            LastCalcTime = NowTime;
             var NeedFullDraw = false;
             if (NowTime.compare(LastDisplayTime) >= 10*60) {
                 NeedFullDraw = true;
@@ -78,7 +79,8 @@ class MoonTideView extends WatchUi.WatchFace {
                     var Cur = Activity.getActivityInfo().currentLocation.toDegrees();
                     CurLat = Cur[0];
                     CurLon = Cur[1];
-                    if ((Storage.getValue("CurrentLat") != CurLat) | (Storage.getValue("CurrentLon"))){ // only store if not the same
+System.println("CurLat");
+                    if ((Storage.getValue("CurrentLat") != CurLat) | (Storage.getValue("CurrentLon") != CurLon)){ // only store if not the same
                         Storage.setValue("CurrentLat", CurLat);
                         Storage.setValue("CurrentLat", CurLat);
                     }
@@ -98,6 +100,8 @@ class MoonTideView extends WatchUi.WatchFace {
                 if ((Storage.getValue("Tide_Lat") != CurLat) | (Storage.getValue("Tide_Lon")!=CurLon)) { // only store if not the same
                     Storage.setValue("Tide_Lat",CurLat);
                     Storage.setValue("Tide_Lon",CurLon);
+                    TideLat = CurLat;
+                    TideLon = CurLon;
                 }
             }
             if (SunLat == 100){
@@ -140,21 +144,33 @@ class MoonTideView extends WatchUi.WatchFace {
                 Dawn = false;
                 DayTime = false;
             }
+            if (Dawn == true){
+                NeedFullDraw = true;
+            }
+
 
 // Tide
 // if new tide data was received we need to process that we also set the request for new data here
             var Tides = Storage.getValue("TideData") as Array;
             var TideCheckTime = NowTime.subtract(new Time.Duration(3*60*60)).value();
+            
+            var TidePos = new Position.Location( {
+                :latitude => TideLat,
+                :longitude => TideLon,
+                :format => :degrees
+            });
 
             var Ti=0;
             while ((TideCheckTime > Tides[0][Ti]) & (Ti<19)) { Ti+=1; }
             if (Ti>2) { Storage.setValue("NeedTides",true); }
-            var HighTide = (Tides[0][Ti] - Math.floor(Tides[0][Ti]/(12.0*60*60)))/(12.0*60*60);
+            var Tide = (Tides[0][Ti]+Time.Gregorian.localMoment(TidePos,NowTime).getOffset())/(12.0*60*60);
+            var HighTide = Tide - Math.floor(Tide);
 
             Ti=0;
             while ((TideCheckTime > Tides[1][Ti]) & (Ti<19)) { Ti+=1; }
             if (Ti>2) { Storage.setValue("NeedTides",true); }
-            var LowTide = (Tides[1][Ti] - Math.floor(Tides[1][Ti]/(12.0*60*60)))/(12.0*60*60);
+            Tide = (Tides[1][Ti]+Time.Gregorian.localMoment(TidePos,NowTime).getOffset())/(12.0*60*60);
+            var LowTide = Tide - Math.floor(Tide);
 
 // Moon
 // set the age of the moon, drawing happens in Graphics
@@ -211,23 +227,6 @@ class MoonTideView extends WatchUi.WatchFace {
                     }
                 }
                 dc.fillPolygon(MoonBlank);
-
-// Tides
-
-                var TideCirc = 15;
-                var TideArc = 35;
-
-
-                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
-                var TideX = 88+TideArc*Math.sin(LowTide*2*Math.PI);
-                var TideY = 88-TideArc*Math.cos(LowTide*2*Math.PI);
-                dc.drawCircle(TideX, TideY, TideCirc);
-                dc.drawText(TideX+1,TideY-1,Graphics.FONT_MEDIUM, "L" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
-                TideX = 88+TideArc*Math.sin(HighTide*2*Math.PI);
-                TideY = 88-TideArc*Math.cos(HighTide*2*Math.PI);
-                dc.fillCircle(TideX, TideY, TideCirc);
-                dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
-                dc.drawText(TideX+1,TideY-1,Graphics.FONT_MEDIUM, "H" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
 // sun and stars System Stats solarIntensity
 
@@ -293,10 +292,22 @@ class MoonTideView extends WatchUi.WatchFace {
                     dc.fillRectangle(88, 71, 88, 88); // blank below horizon
                 }
 
+// Tides
+
+                var TideCirc = 15;
+                var TideArc = 35;
 
 
-
-
+                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
+                var TideX = 88+TideArc*Math.sin(LowTide*2*Math.PI);
+                var TideY = 88-TideArc*Math.cos(LowTide*2*Math.PI);
+                dc.drawCircle(TideX, TideY, TideCirc);
+                dc.drawText(TideX+1,TideY-1,Graphics.FONT_MEDIUM, "L" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                TideX = 88+TideArc*Math.sin(HighTide*2*Math.PI);
+                TideY = 88-TideArc*Math.cos(HighTide*2*Math.PI);
+                dc.fillCircle(TideX, TideY, TideCirc);
+                dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
+                dc.drawText(TideX+1,TideY-1,Graphics.FONT_MEDIUM, "H" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
 // Date
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);

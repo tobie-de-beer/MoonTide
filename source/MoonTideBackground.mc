@@ -17,28 +17,30 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
 	}
 	
     function onWebReply(responseCode as Lang.Number, data as Lang.Dictionary) as Void { // important to define types here
-System.println("Web Response %s\n" + responseCode.toString());
         var High=0;
         var Low =0;
         var HighTide = [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1];
         var LowTide =  [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1];
 
         if (responseCode == 200) {
-            if ((data["extremes"][0]["type"] == "High") | (data["extremes"][1]["type"] == "Low")) {
-                High=0;
-                Low=1;
-                System.println("First is High\n");
+            if (data["copyright"] != null ) {
+                var FirstTide = data["extremes"][0]["type"];
+                if (FirstTide.equals("High")) {
+                    High=0;
+                    Low=1;
+                    System.println("First is High");
+                }
+                else {
+                    High=1;
+                    Low=0;
+                    System.println("First is Low");
+                }
+                for (var i=0; i<40; i+=2){
+                    HighTide[i/2] = (data["extremes"][i+High]["dt"]);
+                    LowTide[i/2] = (data["extremes"][i+Low]["dt"]);
+                }
+                Background.exit([HighTide,LowTide]);
             }
-            else {
-                High=1;
-                Low=0;
-                System.println("First is Low\n");
-            }
-            for (var i=0; i<40; i+=2){
-                HighTide[i/2] = (data["extremes"][i+High]["dt"]);
-                LowTide[i/2] = (data["extremes"][i+Low]["dt"]);
-            }
-            Background.exit([HighTide,LowTide]);
         }
     }
 
