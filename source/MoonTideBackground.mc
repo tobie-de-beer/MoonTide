@@ -49,10 +49,10 @@ System.println("Web Response %s\n" + responseCode.toString());
             Communications.makeWebRequest(
                 "https://www.worldtides.info/api/v3",
                 { "extremes" => "true",
-                  "lat"      => Storage.getValue("Tide_Lat"),//"-28.125",
-                  "lon"      => Storage.getValue("Tide_Lon"),//"32.560",
+                  "lat"      => Storage.getValue("Tide_Lat"),
+                  "lon"      => Storage.getValue("Tide_Lon"),
                   "days"     => "11",
-                  "key"      => Properties.getValue("API_Key"),//"04286f5a-dfdb-4c4e-86c3-6f6f84de2e00"
+                  "key"      => Properties.getValue("API_Key"),
                 },
                 {
                     :headers => {                                          
