@@ -9,6 +9,7 @@ import Toybox.Application.Properties;
 import Toybox.ActivityMonitor;
 import Toybox.Activity;
 import Toybox.Position;
+import Toybox.Weather;
 
 
 class MoonTideView extends WatchUi.WatchFace {
