@@ -16,7 +16,7 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
 		System.ServiceDelegate.initialize();
 	}
 	
-    function onWebReply(responseCode as Lang.Number, data as Lang.Dictionary) as Void { // important to define types here
+    function onWebReply(responseCode as Lang.Number, data as Null or Lang.Dictionary or Lang.String) as Void { // important to define types here
         var High=0;
         var Low =0;
         var HighTide = [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1];

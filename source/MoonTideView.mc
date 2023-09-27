@@ -77,13 +77,13 @@ class MoonTideView extends WatchUi.WatchFace {
 
             if ((TideLat == 100) | (SunLat == 100)){
                 if (Activity.getActivityInfo().currentLocation != null){
+System.println("Found Required Position");
                     var Cur = Activity.getActivityInfo().currentLocation.toDegrees();
                     CurLat = Cur[0];
                     CurLon = Cur[1];
-System.println("CurLat");
                     if ((Storage.getValue("CurrentLat") != CurLat) | (Storage.getValue("CurrentLon") != CurLon)){ // only store if not the same
                         Storage.setValue("CurrentLat", CurLat);
-                        Storage.setValue("CurrentLat", CurLat);
+                        Storage.setValue("CurrentLon", CurLon);
                     }
                 }
                 else {
@@ -196,6 +196,7 @@ System.println("CurLat");
 // ########################################################################
 
             if (NeedFullDraw == true) {
+                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 dc.clear();
 
 //Moon
@@ -239,12 +240,12 @@ System.println("CurLat");
                 //DawnSec = -600;
                 //var DayTime = true;
 
-                var Light  = 100;
+                var Light  = 40;
                 if (System.getSystemStats().solarIntensity != null) {
                     Light = System.getSystemStats().solarIntensity+1;
                 }
 
-                var LightR = (6.0*Math.log(Light,10)).toNumber();
+                var LightR = (6.0*Math.log(Light,10)).toNumber()+1;
 
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
     // day
@@ -316,21 +317,21 @@ System.println("CurLat");
 
 // Date
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
-                dc.fillRoundedRectangle(176-35, 88-15, 34, 31, 3);
+                dc.fillRoundedRectangle(140, 88-15, 34, 31, 3);
                 dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
                 var date = Gregorian.info(NowTime, Time.FORMAT_MEDIUM);
-                dc.drawText(176-17,87,Graphics.FONT_LARGE, date.day.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                dc.drawText(160,87,Graphics.FONT_LARGE, date.day.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
-                dc.drawText(176-17,120,Graphics.FONT_LARGE, date.day_of_week.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                dc.drawText(155,120,Graphics.FONT_LARGE, date.day_of_week.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
 // battery
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
-                dc.fillRoundedRectangle(0, 88-10, 34, 20, 3);
-                dc.fillRoundedRectangle(34, 88-5, 4, 10, 3);
+                dc.fillRoundedRectangle(2, 88-10, 34, 20, 3);
+                dc.fillRoundedRectangle(36, 88-5, 4, 10, 3);
                 dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
-                dc.fillRoundedRectangle(2, 88-8, 30, 16, 2);
+                dc.fillRoundedRectangle(4, 88-8, 30, 16, 2);
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
-                dc.fillRoundedRectangle(3, 88-7, 3+25*(System.getSystemStats().battery/100), 14, 1);
+                dc.fillRoundedRectangle(5, 88-7, 3+25*(System.getSystemStats().battery/100), 14, 1);
                 dc.drawText(20,110,Graphics.FONT_MEDIUM, System.getSystemStats().battery.toNumber().toString() + "%" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
             }
         }
