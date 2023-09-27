@@ -42,7 +42,6 @@ class MoonTideApp extends Application.AppBase {
 
     function onAppInstall(){
     }
-
 }
 
 function getApp() as MoonTideApp {

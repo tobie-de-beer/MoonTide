@@ -161,16 +161,20 @@ System.println("CurLat");
                 :format => :degrees
             });
 
+            //var TideTimeOffsetNow = Time.Gregorian.localMoment(TidePos,NowTime);
+
+            var TideTimeOffset = System.getClockTime().timeZoneOffset;
+
             var Ti=0;
             while ((TideCheckTime > Tides[0][Ti]) & (Ti<19)) { Ti+=1; }
             if (Ti>2) { Storage.setValue("NeedTides",true); }
-            var Tide = (Tides[0][Ti]+Time.Gregorian.localMoment(TidePos,NowTime).getOffset())/(12.0*60*60);
+            var Tide = (Tides[0][Ti] + TideTimeOffset)/(12.0*60*60);
             var HighTide = Tide - Math.floor(Tide);
 
             Ti=0;
             while ((TideCheckTime > Tides[1][Ti]) & (Ti<19)) { Ti+=1; }
             if (Ti>2) { Storage.setValue("NeedTides",true); }
-            Tide = (Tides[1][Ti]+Time.Gregorian.localMoment(TidePos,NowTime).getOffset())/(12.0*60*60);
+            Tide = (Tides[1][Ti] + TideTimeOffset)/(12.0*60*60);
             var LowTide = Tide - Math.floor(Tide);
 
 // Moon
@@ -240,7 +244,7 @@ System.println("CurLat");
                     Light = System.getSystemStats().solarIntensity+1;
                 }
 
-                var LightR = 6.0*Math.log(Light,10);
+                var LightR = (6.0*Math.log(Light,10)).toNumber();
 
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
     // day
