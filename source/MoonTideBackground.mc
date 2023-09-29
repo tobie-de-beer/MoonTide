@@ -28,12 +28,12 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
                 if (FirstTide.equals("High")) {
                     High=0;
                     Low=1;
-                    System.println("First is High");
+System.println("First is High");
                 }
                 else {
                     High=1;
                     Low=0;
-                    System.println("First is Low");
+System.println("First is Low");
                 }
                 for (var i=0; i<40; i+=2){
                     HighTide[i/2] = (data["extremes"][i+High]["dt"]);

@@ -16,6 +16,8 @@ class MoonTideView extends WatchUi.WatchFace {
 
     var LastCalcTime = Time.now().subtract(new Time.Duration(10000));
     var LastDisplayTime = Time.now().subtract(new Time.Duration(10000));
+    var SolarArray = [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1];
+    var SolarInd = 0;
 
     function initialize() {
         WatchFace.initialize();
@@ -73,6 +75,18 @@ class MoonTideView extends WatchUi.WatchFace {
             var CurLat = 0;
             var CurLon = 0;
 
+// Solar
+            var Solar  = 40;
+            if (System.getSystemStats().solarIntensity != null) {
+                Solar = System.getSystemStats().solarIntensity;
+            }
+            SolarArray[SolarInd] = Solar;
+            SolarInd += 1;
+            if (SolarInd >= 20) {
+                SolarInd = 0;
+            }
+
+
 // check coordinates to use
 
             if ((TideLat == 100) | (SunLat == 100)){
@@ -120,28 +134,32 @@ System.println("Found Required Position");
 
             var DayTime = false;
             var Dawn = false;
+            var DawnSec = 0;
 
             var DawnTime = Weather.getSunrise(SunPos, NowTime);
-            var DawnSec = NowTime.compare(DawnTime); // Positive is sun is up
-            if (DawnSec < -600) { // moring before sunrise
+            var DawnSecEval = NowTime.compare(DawnTime); // Positive is sun is up
+System.println(DawnSec);
+            if (DawnSecEval < -600) { // moring before sunrise
                 DayTime = false;
                 Dawn = false;
             }
-            if ((DawnSec < 600) & (DawnSec >-600)) { // sunrise
+            if ((DawnSecEval < 600) & (DawnSecEval >-600)) { // sunrise
                 Dawn = true;
                 DayTime = false;
+                DawnSec = DawnSecEval;
             }
-            if (DawnSec > 600) { // Day
+            if (DawnSecEval > 600) { // Day
                 Dawn = false;
                 DayTime = true;
             }
             DawnTime = Weather.getSunset(SunPos, NowTime);
-            DawnSec = DawnTime.compare(NowTime); // Positive is sun is (still) up
-            if ((DawnSec < 600) & (DawnSec >-600)){ // sunset
+            DawnSecEval = DawnTime.compare(NowTime); // Positive is sun is (still) up
+            if ((DawnSecEval < 600) & (DawnSecEval >-600)){ // sunset
                 Dawn = true;
                 DayTime = false;
+                DawnSec = DawnSecEval;
             }
-            if (DawnSec < -600 ) { // night
+            if (DawnSecEval < -600 ) { // night
                 Dawn = false;
                 DayTime = false;
             }
@@ -239,13 +257,25 @@ System.println("Found Required Position");
                 //Dawn = true;
                 //DawnSec = -600;
                 //var DayTime = true;
-
-                var Light  = 40;
-                if (System.getSystemStats().solarIntensity != null) {
-                    Light = System.getSystemStats().solarIntensity+1;
+                var SolarLight = 0;
+                for (var i =0; i<20; i+=1){
+                    SolarLight += SolarArray[i];
                 }
 
-                var LightR = (6.0*Math.log(Light,10)).toNumber()+1;
+// not working well                var Ray = (3.0*Math.log(SolarLight+1.0,10)).toNumber()+1;
+                var Ray = 1;
+                if (SolarLight >0) { Ray = 2;}
+                if (SolarLight >1) { Ray = 3;}
+                if (SolarLight >2) { Ray = 4;}
+                if (SolarLight >4) { Ray = 5;}
+                if (SolarLight >8) { Ray = 6;}
+                if (SolarLight >16) { Ray = 7;}
+                if (SolarLight >32) { Ray = 8;}
+                if (SolarLight >64) { Ray = 9;}
+                if (SolarLight >128) { Ray = 10;}
+                if (SolarLight >256) { Ray = 11;}
+                if (SolarLight >512) { Ray = 12;}
+                if (SolarLight >1024) { Ray = 13;}
 
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
     // day
@@ -255,7 +285,7 @@ System.println("Found Required Position");
                     dc.fillCircle(SunX, SunY, 8);
                     for (var i=0;i<8;i+=1) {
                         dc.drawLine(SunX + 10*Math.cos(i/4.0*Math.PI+Math.PI/8), SunY + 10*Math.sin(i/4.0*Math.PI+Math.PI/8), 
-                            SunX + (10+LightR)*Math.cos(i/4.0*Math.PI+Math.PI/8), SunY + (10+LightR)*Math.sin(i/4.0*Math.PI+Math.PI/8));
+                            SunX + (10+Ray)*Math.cos(i/4.0*Math.PI+Math.PI/8), SunY + (10+Ray)*Math.sin(i/4.0*Math.PI+Math.PI/8));
                     }
 
                 }
@@ -278,7 +308,7 @@ System.println("Found Required Position");
                     dc.drawLine(StarX, StarY-StarR, StarX, StarY+StarR+1);
                     StarX = 140;
                     StarY =  40;
-                    StarR =   LightR;
+                    StarR =   Ray;
                     dc.drawLine(StarX-StarR, StarY, StarX+StarR+1, StarY);
                     dc.drawLine(StarX, StarY-StarR, StarX, StarY+StarR+1);
                 }
@@ -291,7 +321,7 @@ System.println("Found Required Position");
                     dc.fillCircle(SunX, SunY, 8);
                     for (var i=0;i<8;i+=1) {
                         dc.drawLine(SunX + 10*Math.cos(i/4.0*Math.PI+Math.PI/8), SunY + 10*Math.sin(i/4.0*Math.PI+Math.PI/8), 
-                            SunX + (10+LightR)*Math.cos(i/4.0*Math.PI+Math.PI/8), SunY + (10+LightR)*Math.sin(i/4.0*Math.PI+Math.PI/8));
+                            SunX + (10+Ray)*Math.cos(i/4.0*Math.PI+Math.PI/8), SunY + (10+Ray)*Math.sin(i/4.0*Math.PI+Math.PI/8));
                     }
 
                     dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
@@ -320,7 +350,7 @@ System.println("Found Required Position");
                 dc.fillRoundedRectangle(140, 88-15, 34, 31, 3);
                 dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
                 var date = Gregorian.info(NowTime, Time.FORMAT_MEDIUM);
-                dc.drawText(160,87,Graphics.FONT_LARGE, date.day.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                dc.drawText(158,87,Graphics.FONT_LARGE, date.day.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 dc.drawText(155,120,Graphics.FONT_LARGE, date.day_of_week.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
