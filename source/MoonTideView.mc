@@ -138,7 +138,7 @@ System.println("Found Required Position");
 
             var DawnTime = Weather.getSunrise(SunPos, NowTime);
             var DawnSecEval = NowTime.compare(DawnTime); // Positive is sun is up
-System.println(DawnSec);
+
             if (DawnSecEval < -600) { // moring before sunrise
                 DayTime = false;
                 Dawn = false;
@@ -168,52 +168,54 @@ System.println(DawnSec);
             }
 
 
+
+            if (NeedFullDraw == true) { // the fpoollowing only happens every 10 min!
+
 // Tide
 // if new tide data was received we need to process that we also set the request for new data here
-            var Tides = Storage.getValue("TideData") as Array;
-            var TideCheckTime = NowTime.subtract(new Time.Duration(3*60*60)).value();
+                var Tides = Storage.getValue("TideData") as Array;
+                var TideCheckTime = NowTime.subtract(new Time.Duration(3*60*60)).value();
             
-            var TidePos = new Position.Location( {
-                :latitude => TideLat,
-                :longitude => TideLon,
-                :format => :degrees
-            });
+                var TidePos = new Position.Location( {
+                    :latitude => TideLat,
+                    :longitude => TideLon,
+                    :format => :degrees
+                });
 
-            //var TideTimeOffsetNow = Time.Gregorian.localMoment(TidePos,NowTime);
+                //var TideTimeOffsetNow = Time.Gregorian.localMoment(TidePos,NowTime);
 
-            var TideTimeOffset = System.getClockTime().timeZoneOffset;
+                var TideTimeOffset = System.getClockTime().timeZoneOffset;
 
-            var Ti=0;
-            while ((TideCheckTime > Tides[0][Ti]) & (Ti<19)) { Ti+=1; }
-            if (Ti>2) { Storage.setValue("NeedTides",true); }
-            var Tide = (Tides[0][Ti] + TideTimeOffset)/(12.0*60*60);
-            var HighTide = Tide - Math.floor(Tide);
+                var Ti=0;
+                while ((TideCheckTime > Tides[0][Ti]) & (Ti<19)) { Ti+=1; }
+                if (Ti>2) { Storage.setValue("NeedTides",true); }
+                var Tide = (Tides[0][Ti] + TideTimeOffset)/(12.0*60*60);
+                var HighTide = Tide - Math.floor(Tide);
 
-            Ti=0;
-            while ((TideCheckTime > Tides[1][Ti]) & (Ti<19)) { Ti+=1; }
-            if (Ti>2) { Storage.setValue("NeedTides",true); }
-            Tide = (Tides[1][Ti] + TideTimeOffset)/(12.0*60*60);
-            var LowTide = Tide - Math.floor(Tide);
+                Ti=0;
+                while ((TideCheckTime > Tides[1][Ti]) & (Ti<19)) { Ti+=1; }
+                if (Ti>2) { Storage.setValue("NeedTides",true); }
+                Tide = (Tides[1][Ti] + TideTimeOffset)/(12.0*60*60);
+                var LowTide = Tide - Math.floor(Tide);
 
 // Moon
 // set the age of the moon, drawing happens in Graphics
-            var ReferenceNewMoonOptions = {
+                var ReferenceNewMoonOptions = {
                     :year  => 2023,
                     :month =>    9,
                     :day   =>   15,
                     :hour  =>   01,
                     :minute =>  40
                 };
-            var ReferenceNewMoon = Time.Gregorian.moment(ReferenceNewMoonOptions);
-            var MoonSinceReference = NowTime.compare(ReferenceNewMoon)/60/60/24 / 29.53;
-            var MoonNumber =  Math.floor(MoonSinceReference);
-            var MoonAge = MoonSinceReference - MoonNumber;
+                var ReferenceNewMoon = Time.Gregorian.moment(ReferenceNewMoonOptions);
+                var MoonSinceReference = NowTime.compare(ReferenceNewMoon)/60/60/24 / 29.53;
+                var MoonNumber =  Math.floor(MoonSinceReference);
+                var MoonAge = MoonSinceReference - MoonNumber;
 
 // ########################################################################
 // ## G R A P H I C S : ###################################################
 // ########################################################################
 
-            if (NeedFullDraw == true) {
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 dc.clear();
 
