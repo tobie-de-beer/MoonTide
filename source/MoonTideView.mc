@@ -176,11 +176,11 @@ System.println("Found Required Position");
                 var Tides = Storage.getValue("TideData") as Array;
                 var TideCheckTime = NowTime.subtract(new Time.Duration(3*60*60)).value();
             
-                var TidePos = new Position.Location( {
-                    :latitude => TideLat,
-                    :longitude => TideLon,
-                    :format => :degrees
-                });
+                //var TidePos = new Position.Location( {
+                //    :latitude => TideLat,
+                //    :longitude => TideLon,
+                //    :format => :degrees
+                //);
 
                 //var TideTimeOffsetNow = Time.Gregorian.localMoment(TidePos,NowTime);
 

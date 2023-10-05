@@ -41,29 +41,43 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
                 }
                 Background.exit([HighTide,LowTide]);
             }
+            else {
+                Background.exit(null);
+            }
+        }
+        else {
+            Background.exit(null);
         }
     }
 
     function onTemporalEvent() {
-        // if connected...:
 //System.println("onTemporalEvent\n");
         if (Storage.getValue("NeedTides") == true) {
-            Communications.makeWebRequest(
-                "https://www.worldtides.info/api/v3",
-                { "extremes" => "true",
-                  "lat"      => Storage.getValue("Tide_Lat"),
-                  "lon"      => Storage.getValue("Tide_Lon"),
-                  "days"     => "11",
-                  "key"      => Properties.getValue("API_Key"),
-                },
-                {
-                    :headers => {                                          
-                       "Content-Type" => Communications.REQUEST_CONTENT_TYPE_URL_ENCODED
+//            if (System.ConnectionInfo == CONNECTION_STATE_CONNECTED) {
+//System.println("WebRequest\n");
+                Communications.makeWebRequest(
+                    "https://www.worldtides.info/api/v3",
+                    { "extremes" => "true",
+                      "lat"      => Storage.getValue("Tide_Lat"),
+                      "lon"      => Storage.getValue("Tide_Lon"),
+                      "days"     => "11",
+                      "key"      => Properties.getValue("API_Key"),
                     },
-                    :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
-                },
-                method(:onWebReply)
-            );
+                    {
+                        :headers => {                                          
+                           "Content-Type" => Communications.REQUEST_CONTENT_TYPE_URL_ENCODED
+                        },
+                        :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+                    },
+                    method(:onWebReply)
+                );
+//            }
+//            else {
+//                Background.exit(null);
+//            }
+        }
+        else {
+            Background.exit(null);
         }
     }    
 

@@ -28,8 +28,10 @@ class MoonTideApp extends Application.AppBase {
     }
 
     function onBackgroundData(data) {
-        Application.Storage.setValue("TideData", data);
-        Application.Storage.setValue("NeedTides", false);
+        if (data != null) {
+            Application.Storage.setValue("TideData", data);
+            Application.Storage.setValue("NeedTides", false);
+        }
     }
 
     function onSettingsChanged() {
