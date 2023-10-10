@@ -1,9 +1,10 @@
 using Toybox.Background;
+using Toybox.Application;
 using Toybox.System;
 using Toybox.Communications;
 using Toybox.Lang;
-using Toybox.Application.Properties;
-using Toybox.Application.Storage;
+import Toybox.Application.Storage;
+import Toybox.Application.Properties;
 
 // The Service Delegate is the main entry point for background processes
 // our onTemporalEvent() method will get run each time our periodic event
@@ -14,9 +15,11 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
 	
 	function initialize() {
 		System.ServiceDelegate.initialize();
+        //System.println("MoonTideBackground.Initialize");    // ########### D E B U G ###############
 	}
 	
     function onWebReply(responseCode as Lang.Number, data as Null or Lang.Dictionary or Lang.String) as Void { // important to define types here
+        //System.println("MoonTideBackground.onWebReply");    // ########### D E B U G ###############
         var High=0;
         var Low =0;
         var HighTide = [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1];
@@ -28,12 +31,12 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
                 if (FirstTide.equals("High")) {
                     High=0;
                     Low=1;
-//System.println("First is High");
+                    //System.println("First is High");
                 }
                 else {
                     High=1;
                     Low=0;
-//System.println("First is Low");
+                    //System.println("First is Low");
                 }
                 for (var i=0; i<40; i+=2){
                     HighTide[i/2] = (data["extremes"][i+High]["dt"]);
@@ -51,17 +54,17 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
     }
 
     function onTemporalEvent() {
-//System.println("onTemporalEvent\n");
-        if (Storage.getValue("NeedTides") == true) {
+        //System.println("MoonTideBackground.onTemporalEvent");    // ########### D E B U G ###############    
+        if (Storage.getValue("NeedTides") == true) { // cant'read memory :-( )
 //            if (System.ConnectionInfo == CONNECTION_STATE_CONNECTED) {
-//System.println("WebRequest\n");
+                //System.println("MoonTideBackgroun.onTemporalEvent.WebRequest\n");    // ########### D E B U G ###############
                 Communications.makeWebRequest(
                     "https://www.worldtides.info/api/v3",
                     { "extremes" => "true",
-                      "lat"      => Storage.getValue("Tide_Lat"),
-                      "lon"      => Storage.getValue("Tide_Lon"),
+                      "lat"      => Storage.getValue("TideLat"), // cant'read memory :-( )
+                      "lon"      => Storage.getValue("TideLon"), // cant'read memory :-( )
                       "days"     => "11",
-                      "key"      => Properties.getValue("API_Key"),
+                      "key"      => Properties.getValue("API_Key"), // cant'read memory :-( )
                     },
                     {
                         :headers => {                                          
