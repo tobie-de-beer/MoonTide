@@ -7,7 +7,7 @@ import Toybox.Application.Storage;
 import Toybox.Application.Properties;
 
 var newSettings_Mem = false;
-var Tides_Mem = [[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1],[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1]];
+var Tides_Mem as Array<Array<Number>> = [[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1],[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1]] as Array<Array<Number>>;
 
 (:background)
 class MoonTideApp extends Application.AppBase {    

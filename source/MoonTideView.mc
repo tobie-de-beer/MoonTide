@@ -24,9 +24,11 @@ class MoonTideView extends WatchUi.WatchFace {
     var CurLat_Mem = 0;
     var CurLon_Mem = 0;
 
-    var LastCalcTime_Mem = Time.now().subtract(new Time.Duration(10000));
-    var LastDisplayTime_Mem = Time.now().subtract(new Time.Duration(10000));
-    var SolarArray_Mem = [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1];
+//    var LastCalcTime_Mem = Time.now().subtract(new Time.Duration(10000));
+    var LastCalcTime_Mem = Time.now().subtract(new Time.Duration(10000)).value() as Lang.Number;
+//    var LastDisplayTime_Mem = Time.now().subtract(new Time.Duration(10000));
+    var LastDisplayTime_Mem = Time.now().subtract(new Time.Duration(10000)).value() as Lang.Number;
+    var SolarArray_Mem as Array<Lang.Number> = [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1] as Array<Lang.Number>;
     var SolarInd_Mem = 0;
     var CloseToDawn_Mem = true;
     // var MoonS_Mem = true;
@@ -91,7 +93,7 @@ class MoonTideView extends WatchUi.WatchFace {
         // Settings:
         CurLat_Mem = Storage.getValue("CurrentLat");
         CurLon_Mem = Storage.getValue("CurrentLon");
-        Tides_Mem = Storage.getValue("TideData") as Array;
+        Tides_Mem = Storage.getValue("TideData") as Array<Array<Number>>;
         interpretSettings();
     }
 
@@ -106,17 +108,22 @@ class MoonTideView extends WatchUi.WatchFace {
 
 // We work a lot with the current time. use a veraible for it:
         var NowTime = Time.now();
+        var NowTimeVal = NowTime.value() as Lang.Number; // use this wherever possible time routines seems more expensive than simple subtraction.
+        dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Every Section should return to this. Changing color takes significant proccessing time
+
 
 // We only update every 10 min except for steps and stairs
-        if (NowTime.compare(LastCalcTime_Mem) >= 60) { // only once a minute! except for steps and stairs - see last bit
-            LastCalcTime_Mem = NowTime;
+ //       if (NowTime.compare(LastCalcTime_Mem) >= 60) { // only once a minute! except for steps and stairs - see last bit
+        if (NowTimeVal - LastCalcTime_Mem >= 60) { // only once a minute! except for steps and stairs - see last bit
+            LastCalcTime_Mem = NowTimeVal;
             //System.println("MoonTideView.onUpdate_1min");         // ########### D E B U G ###############            
 
             var NeedFullDraw = false;
             
-            if (NowTime.compare(LastDisplayTime_Mem) >= 10*60) {
+//            if (NowTime.compare(LastDisplayTime_Mem) >= 10*60) {
+            if (NowTimeVal - LastDisplayTime_Mem >= 10*60) {
                 NeedFullDraw = true;
-                LastDisplayTime_Mem = NowTime;
+                LastDisplayTime_Mem = NowTimeVal;
                 //System.println("MoonTideView.onUpdate_10Min");    // ########### D E B U G ###############            
             }
 // During unset and sunrise we actually also do a full draw every minute
@@ -178,8 +185,10 @@ class MoonTideView extends WatchUi.WatchFace {
                     :format => :degrees
                 });
 
-                var DawnTime = Weather.getSunrise(SunPos, NowTime);
-                var DawnSecEval = NowTime.compare(DawnTime); // Positive is sun is up
+                //var DawnTime = Weather.getSunrise(SunPos, NowTime);
+                var DawnTime = Weather.getSunrise(SunPos, NowTime).value() as Lang.Number;
+                //var DawnSecEval = NowTime.compare(DawnTime); // Positive is sun is up
+                var DawnSecEval = NowTimeVal - DawnTime; // Positive is sun is up
 
                 if (DawnSecEval < -600) { // moring before sunrise
                     DayTime = false;
@@ -197,8 +206,10 @@ class MoonTideView extends WatchUi.WatchFace {
                     Dawn = false;
                     DayTime = true;
                 }
-                DawnTime = Weather.getSunset(SunPos, NowTime);
-                DawnSecEval = DawnTime.compare(NowTime); // Positive is sun is (still) up
+                //DawnTime = Weather.getSunset(SunPos, NowTime);
+                DawnTime = Weather.getSunset(SunPos, NowTime).value() as Lang.Number;
+                //DawnSecEval = DawnTime.compare(NowTime); // Positive is sun is (still) up
+                DawnSecEval = DawnTime - NowTimeVal; // Positive is sun is (still) up
                 if ((DawnSecEval < 600) & (DawnSecEval >-600)){ // sunset
                     Dawn = true;
                     DayTime = false;
@@ -222,7 +233,8 @@ class MoonTideView extends WatchUi.WatchFace {
 
 // Tide
 // if new tide data was received we need to process that we also set the request for new data here
-                var TideCheckTime = NowTime.subtract(new Time.Duration(3*60*60)).value();
+                //var TideCheckTime = NowTime.subtract(new Time.Duration(3*60*60)).value();
+                var TideCheckTime = NowTimeVal - (3*60*60);
             
                 //var TidePos = new Position.Location( {
                 //    :latitude => TideLat,
@@ -271,16 +283,13 @@ class MoonTideView extends WatchUi.WatchFace {
 // ## G R A P H I C S : ###################################################
 // ########################################################################
 
-                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 dc.clear();
 
 //Moon
                 var MoonR = 23.5;
                 var MoonX = 35.5; // added half points makes the maths work nice
                 var MoonY = 35;
-                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 dc.fillCircle(MoonX, MoonY, MoonR);
-                dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
                 var MoonBlankPoint = [MoonX,MoonY-MoonR]; // top point; 00 xy is left top
                 var MoonBlank = [MoonBlankPoint];
                 var MoonCut = 0;
@@ -307,7 +316,9 @@ class MoonTideView extends WatchUi.WatchFace {
                       MoonBlank.add(MoonBlankPoint);
                     }
                 }
-                dc.fillPolygon(MoonBlank);
+                dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
+                dc.fillPolygon(MoonBlank); // ##### BLACK #####
+                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
 
 // sun and stars System Stats solarIntensity
 
@@ -320,21 +331,20 @@ class MoonTideView extends WatchUi.WatchFace {
                 }
 
 // not working well                var Ray = (3.0*Math.log(SolarLight+1.0,10)).toNumber()+1;
-                var Ray = 1;
-                if (SolarLight >0) { Ray = 2;}
-                if (SolarLight >1) { Ray = 3;}
-                if (SolarLight >2) { Ray = 4;}
-                if (SolarLight >4) { Ray = 5;}
-                if (SolarLight >8) { Ray = 6;}
-                if (SolarLight >16) { Ray = 7;}
-                if (SolarLight >32) { Ray = 8;}
-                if (SolarLight >64) { Ray = 9;}
-                if (SolarLight >128) { Ray = 10;}
-                if (SolarLight >256) { Ray = 11;}
-                if (SolarLight >512) { Ray = 12;}
-                if (SolarLight >1024) { Ray = 13;}
+                var Ray = 2;
+                if (SolarLight >0) { Ray = 3;}
+                if (SolarLight >1) { Ray = 4;}
+                if (SolarLight >2) { Ray = 5;}
+                if (SolarLight >4) { Ray = 6;}
+                if (SolarLight >8) { Ray = 7;}
+                if (SolarLight >16) { Ray = 8;}
+                if (SolarLight >32) { Ray = 9;}
+                if (SolarLight >64) { Ray = 10;}
+                if (SolarLight >128) { Ray = 11;}
+                if (SolarLight >256) { Ray = 12;}
+                if (SolarLight >512) { Ray = 13;}
+                if (SolarLight >1024) { Ray = 14;}
 
-                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
     // day
                 if ((DayTime == true) & (Dawn == false)){
                     var SunX = 140;
@@ -382,7 +392,8 @@ class MoonTideView extends WatchUi.WatchFace {
                     }
 
                     dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
-                    dc.fillRectangle(88, 71, 88, 88); // blank below horizon
+                    dc.fillRectangle(88, 71, 88, 88); // blank below horizon // ##### BLACK #####
+                    dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
                 }
 
 // Tides
@@ -391,7 +402,6 @@ class MoonTideView extends WatchUi.WatchFace {
                 var TideArc = 35;
 
 
-                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 var TideX = 88+TideArc*Math.sin(LowTide*2*Math.PI);
                 var TideY = 88-TideArc*Math.cos(LowTide*2*Math.PI);
                 dc.drawCircle(TideX, TideY, TideCirc);
@@ -400,24 +410,23 @@ class MoonTideView extends WatchUi.WatchFace {
                 TideY = 88-TideArc*Math.cos(HighTide*2*Math.PI);
                 dc.fillCircle(TideX, TideY, TideCirc);
                 dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
-                dc.drawText(TideX+1,TideY-1,Graphics.FONT_MEDIUM, "H" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                dc.drawText(TideX+1,TideY-1,Graphics.FONT_MEDIUM, "H" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER); // ##### BLACK #####
+                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
 
 // Date
-                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 dc.fillRoundedRectangle(140, 88-15, 34, 31, 3);
-                dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
                 var date = Gregorian.info(NowTime, Time.FORMAT_MEDIUM);
-                dc.drawText(158,87,Graphics.FONT_LARGE, date.day.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
-                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
+                dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
+                dc.drawText(158,87,Graphics.FONT_LARGE, date.day.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER); // ##### BLACK #####
+                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
                 dc.drawText(155,120,Graphics.FONT_LARGE, date.day_of_week.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
 // battery
-                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 dc.fillRoundedRectangle(2, 88-10, 34, 20, 3);
                 dc.fillRoundedRectangle(36, 88-5, 4, 10, 3);
                 dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
-                dc.fillRoundedRectangle(4, 88-8, 30, 16, 2);
-                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
+                dc.fillRoundedRectangle(4, 88-8, 30, 16, 2); // ##### BLACK #####
+                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
                 dc.fillRoundedRectangle(5, 88-7, 3+25*(System.getSystemStats().battery/100), 14, 1);
                 dc.drawText(20,110,Graphics.FONT_MEDIUM, System.getSystemStats().battery.toNumber().toString() + "%" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
             } // if (NeedFullDraw == true) 
@@ -428,11 +437,9 @@ class MoonTideView extends WatchUi.WatchFace {
 
 // Always do these..... (even at 1 sec)
 // Steps:
-        dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
         dc.drawText(88, 162, Graphics.FONT_LARGE, ActivityMonitor.getInfo().steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
 // Stairs:
-        dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
         dc.drawText(88, 14, Graphics.FONT_LARGE, ActivityMonitor.getInfo().floorsClimbed.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
 
