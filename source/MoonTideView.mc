@@ -23,6 +23,11 @@ class MoonTideView extends WatchUi.WatchFace {
     var SunLon_Mem = 0;
     var CurLat_Mem = 0;
     var CurLon_Mem = 0;
+    var SunRise_Mem;
+    var SunSet_Mem;
+
+    var NeedNewSunRiseSet_Mem = true;
+    var Today_Mem = Time.today().subtract(new Time.Duration(1000000)).value();
 
 //    var LastCalcTime_Mem = Time.now().subtract(new Time.Duration(10000));
     var LastCalcTime_Mem = Time.now().subtract(new Time.Duration(10000)).value() as Lang.Number;
@@ -42,7 +47,7 @@ class MoonTideView extends WatchUi.WatchFace {
     // Load your resources here
     function onLayout(dc as Dc) as Void {
         //System.println("MoonTideView.onLayout");                 // ########### D E B U G ###############
-        setLayout(Rez.Layouts.WatchFace(dc));
+        //setLayout(Rez.Layouts.WatchFace(dc));
     }
 
     function interpretSettings() as Void {
@@ -170,6 +175,7 @@ class MoonTideView extends WatchUi.WatchFace {
                             if (SunLat_Mem_Settings == 100){
                                 SunLat_Mem = CurLat;
                                 SunLon_Mem = CurLon;
+                                NeedNewSunRiseSet_Mem = true;
                             }
                         }
                     }
@@ -179,43 +185,45 @@ class MoonTideView extends WatchUi.WatchFace {
 
                 CloseToDawn_Mem = false;
 
-                var SunPos = new Position.Location( {
-                    :latitude => SunLat_Mem,
-                    :longitude => SunLon_Mem,
-                    :format => :degrees
-                });
+                var Today = Time.today().value();
+                if ((Today != Today_Mem) | (NeedNewSunRiseSet_Mem == true)){ // reduce unneccesary calls
+                    Today_Mem = Today;
+                    NeedNewSunRiseSet_Mem = false;
+                    var SunPos = new Position.Location( {
+                        :latitude => SunLat_Mem,
+                        :longitude => SunLon_Mem,
+                        :format => :degrees
+                    });
+                    SunRise_Mem = Weather.getSunrise(SunPos, NowTime).value();
+                    SunSet_Mem = Weather.getSunset(SunPos, NowTime).value();
+                }
 
-                //var DawnTime = Weather.getSunrise(SunPos, NowTime);
-                var DawnTime = Weather.getSunrise(SunPos, NowTime).value() as Lang.Number;
-                //var DawnSecEval = NowTime.compare(DawnTime); // Positive is sun is up
+                var DawnTime = SunRise_Mem;
                 var DawnSecEval = NowTimeVal - DawnTime; // Positive is sun is up
-
                 if (DawnSecEval < -600) { // moring before sunrise
                     DayTime = false;
                     Dawn = false;
                 }
-                if ((DawnSecEval < 600) & (DawnSecEval >-600)) { // sunrise
+                if ((DawnSecEval <= 600) & (DawnSecEval >= -600)) { // sunrise
                     Dawn = true;
                     DayTime = false;
                     DawnSec = DawnSecEval;
                 }
-                if ((DawnSecEval < 1200) & (DawnSecEval >-1200)) { // close to sunrise
+                if ((DawnSecEval <= 660) & (DawnSecEval >= -1200)) { // close to sunrise
                     CloseToDawn_Mem = true;
                 }
                 if (DawnSecEval > 600) { // Day
                     Dawn = false;
                     DayTime = true;
                 }
-                //DawnTime = Weather.getSunset(SunPos, NowTime);
-                DawnTime = Weather.getSunset(SunPos, NowTime).value() as Lang.Number;
-                //DawnSecEval = DawnTime.compare(NowTime); // Positive is sun is (still) up
+                DawnTime = SunSet_Mem;
                 DawnSecEval = DawnTime - NowTimeVal; // Positive is sun is (still) up
-                if ((DawnSecEval < 600) & (DawnSecEval >-600)){ // sunset
+                if ((DawnSecEval <= 600) & (DawnSecEval >= -600)){ // sunset
                     Dawn = true;
                     DayTime = false;
                     DawnSec = DawnSecEval;
                 }
-                if ((DawnSecEval < 1200) & (DawnSecEval >-1200)) { // close to sunset
+                if ((DawnSecEval < 1200) & (DawnSecEval >-660)) { // close to sunset
                     CloseToDawn_Mem = true;
                 }
                 if (DawnSecEval < -600 ) { // night
@@ -396,7 +404,7 @@ class MoonTideView extends WatchUi.WatchFace {
                     dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
                 }
 
-// Tides
+// Tides note: need to be after sun and stars - possible interference with below horizon stuff
 
                 var TideCirc = 15;
                 var TideArc = 35;
@@ -413,7 +421,7 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.drawText(TideX+1,TideY-1,Graphics.FONT_MEDIUM, "H" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER); // ##### BLACK #####
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
 
-// Date
+// Date note: need to be after sun and stars due to belo horizon blank
                 dc.fillRoundedRectangle(140, 88-15, 34, 31, 3);
                 var date = Gregorian.info(NowTime, Time.FORMAT_MEDIUM);
                 dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);

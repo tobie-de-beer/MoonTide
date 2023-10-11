@@ -28,7 +28,9 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
         if (responseCode == 200) {
             if (data instanceof Dictionary) {
                 if (data["copyright"] != null ) {
-                    var FirstTide = data["extremes"][0]["type"];
+                    var Tides  = data.get("extremes") as Lang.Array<Lang.Dictionary>;
+                    //var FirstTide = data["extremes"][0]["type"];
+                    var FirstTide = Tides[0]["type"];
                     if (FirstTide.equals("High")) {
                         High=0;
                         Low=1;
@@ -40,8 +42,10 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
                         //System.println("First is Low"); // ########### D E B U G ###############
                     }
                     for (var i=0; i<40; i+=2){
-                        HighTide[i/2] = (data["extremes"][i+High]["dt"]);
-                        LowTide[i/2] = (data["extremes"][i+Low]["dt"]);
+                        //HighTide[i/2] = data["extremes"][i+High]["dt"];
+                        HighTide[i/2] = Tides[i+High]["dt"];
+                        //LowTide[i/2] = data["extremes"][i+Low]["dt"];
+                        LowTide[i/2] = Tides[i+Low]["dt"];
                     }
                     Background.exit([HighTide,LowTide]);
                 }
