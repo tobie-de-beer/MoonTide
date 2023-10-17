@@ -118,18 +118,16 @@ class MoonTideView extends WatchUi.WatchFace {
 
 
 // We only update every 10 min except for steps and stairs
- //       if (NowTime.compare(LastCalcTime_Mem) >= 60) { // only once a minute! except for steps and stairs - see last bit
-        if (NowTimeVal - LastCalcTime_Mem >= 60) { // only once a minute! except for steps and stairs - see last bit
+        if (NowTimeVal - LastCalcTime_Mem >= 60) { // only once a minute! - see last bit
             LastCalcTime_Mem = NowTimeVal;
-            //System.println("MoonTideView.onUpdate_1min");         // ########### D E B U G ###############            
+            System.println("MoonTideView.onUpdate_1min");         // ########### D E B U G ###############            
 
             var NeedFullDraw = false;
             
-//            if (NowTime.compare(LastDisplayTime_Mem) >= 10*60) {
-            if (NowTimeVal - LastDisplayTime_Mem >= 10*60) {
+            if (NowTimeVal - LastDisplayTime_Mem >= 1800) { // 30 * 60 = 1800 once every 10 mins
                 NeedFullDraw = true;
                 LastDisplayTime_Mem = NowTimeVal;
-                //System.println("MoonTideView.onUpdate_10Min");    // ########### D E B U G ###############            
+                System.println("MoonTideView.onUpdate_10Min");    // ########### D E B U G ###############            
             }
 // During unset and sunrise we actually also do a full draw every minute
 
@@ -157,10 +155,10 @@ class MoonTideView extends WatchUi.WatchFace {
             var DawnSec = 0;
 
             if ((CloseToDawn_Mem == true) | (NeedFullDraw == true)) { // only when neccesary
-
+                //System.println("PositionCheck");
                 if ((TideLat_Mem_Settings == 100) | (SunLat_Mem_Settings == 100)){
                     if (Activity.getActivityInfo().currentLocation != null){
-//System.println("Found Required Position");
+                        //System.println("Found Required Position");
                         var Cur = Activity.getActivityInfo().currentLocation.toDegrees();
                         var CurLat = Cur[0];
                         var CurLon = Cur[1];
@@ -187,8 +185,10 @@ class MoonTideView extends WatchUi.WatchFace {
 
                 var Today = Time.today().value();
                 if ((Today != Today_Mem) | (NeedNewSunRiseSet_Mem == true)){ // reduce unneccesary calls
+                    //System.println("SunSetRise");
                     Today_Mem = Today;
                     NeedNewSunRiseSet_Mem = false;
+                    NeedFullDraw = true; // date Changed
                     var SunPos = new Position.Location( {
                         :latitude => SunLat_Mem,
                         :longitude => SunLon_Mem,
@@ -209,7 +209,7 @@ class MoonTideView extends WatchUi.WatchFace {
                     DayTime = false;
                     DawnSec = DawnSecEval;
                 }
-                if ((DawnSecEval <= 660) & (DawnSecEval >= -1200)) { // close to sunrise
+                if ((DawnSecEval <= 660) & (DawnSecEval >= -2400)) { // close to sunrise 2400 = (10 * 60 ) + (30 * 60)
                     CloseToDawn_Mem = true;
                 }
                 if (DawnSecEval > 600) { // Day
@@ -223,7 +223,7 @@ class MoonTideView extends WatchUi.WatchFace {
                     DayTime = false;
                     DawnSec = DawnSecEval;
                 }
-                if ((DawnSecEval < 1200) & (DawnSecEval >-660)) { // close to sunset
+                if ((DawnSecEval < 2400) & (DawnSecEval >-660)) { // close to sunset 
                     CloseToDawn_Mem = true;
                 }
                 if (DawnSecEval < -600 ) { // night
@@ -242,6 +242,7 @@ class MoonTideView extends WatchUi.WatchFace {
 // Tide
 // if new tide data was received we need to process that we also set the request for new data here
                 //var TideCheckTime = NowTime.subtract(new Time.Duration(3*60*60)).value();
+                System.println("FullDraw");
                 var TideCheckTime = NowTimeVal - (3*60*60);
             
                 //var TidePos = new Position.Location( {
@@ -441,14 +442,15 @@ class MoonTideView extends WatchUi.WatchFace {
 
 // stuff for every minute....
 
-        } //if (NowTime.compare(LastCalcTime_Mem) >= 60)
-
-// Always do these..... (even at 1 sec)
 // Steps:
         dc.drawText(88, 162, Graphics.FONT_LARGE, ActivityMonitor.getInfo().steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
 // Stairs:
         dc.drawText(88, 14, Graphics.FONT_LARGE, ActivityMonitor.getInfo().floorsClimbed.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+
+        } //if (NowTime.compare(LastCalcTime_Mem) >= 60)
+
+// Always do these..... (even at 1 sec)
 
 
         // Call the parent onUpdate function to redraw the layout
