@@ -1,3 +1,4 @@
 bin/*
 device/*
 IQStore/*
+.vscode/*
