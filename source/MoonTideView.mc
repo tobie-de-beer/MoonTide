@@ -117,17 +117,17 @@ class MoonTideView extends WatchUi.WatchFace {
         dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Every Section should return to this. Changing color takes significant proccessing time
 
 
-// We only update every 10 min except for steps and stairs
+// We only update every 30 min except for steps and stairs
         if (NowTimeVal - LastCalcTime_Mem >= 60) { // only once a minute! - see last bit
             LastCalcTime_Mem = NowTimeVal;
-            System.println("MoonTideView.onUpdate_1min");         // ########### D E B U G ###############            
+            //System.println("MoonTideView.onUpdate_1min");         // ########### D E B U G ###############            
 
             var NeedFullDraw = false;
             
-            if (NowTimeVal - LastDisplayTime_Mem >= 1800) { // 30 * 60 = 1800 once every 10 mins
+            if (NowTimeVal - LastDisplayTime_Mem >= 1800) { // 30 * 60 = 1800 once every 30 mins
                 NeedFullDraw = true;
                 LastDisplayTime_Mem = NowTimeVal;
-                System.println("MoonTideView.onUpdate_10Min");    // ########### D E B U G ###############            
+                //System.println("MoonTideView.onUpdate_10Min");    // ########### D E B U G ###############            
             }
 // During unset and sunrise we actually also do a full draw every minute
 
@@ -237,12 +237,12 @@ class MoonTideView extends WatchUi.WatchFace {
 
 
 
-            if (NeedFullDraw == true) { // the following only happens every 10 min! (or at Dawn)
+            if (NeedFullDraw == true) { // the following only happens every 30 min! (or at Dawn)
+                //System.println("FullDraw");
 
 // Tide
 // if new tide data was received we need to process that we also set the request for new data here
                 //var TideCheckTime = NowTime.subtract(new Time.Duration(3*60*60)).value();
-                System.println("FullDraw");
                 var TideCheckTime = NowTimeVal - (3*60*60);
             
                 //var TidePos = new Position.Location( {
@@ -438,7 +438,7 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
                 dc.fillRoundedRectangle(5, 88-7, 3+25*(System.getSystemStats().battery/100), 14, 1);
                 dc.drawText(20,110,Graphics.FONT_MEDIUM, System.getSystemStats().battery.toNumber().toString() + "%" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
-            } // if (NeedFullDraw == true) 
+            } // if (NeedFullDraw == true) (30 min cycle)
 
 // stuff for every minute....
 
