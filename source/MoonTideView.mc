@@ -114,7 +114,7 @@ class MoonTideView extends WatchUi.WatchFace {
 // We work a lot with the current time. use a veraible for it:
         var NowTime = Time.now();
         var NowTimeVal = NowTime.value() as Lang.Number; // use this wherever possible time routines seems more expensive than simple subtraction.
-        dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Every Section should return to this. Changing color takes significant proccessing time
+        //dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Every Section should return to this. Changing color takes significant proccessing time
 
 
 // We only update every 30 min except for steps and stairs
@@ -124,7 +124,7 @@ class MoonTideView extends WatchUi.WatchFace {
 
             var NeedFullDraw = false;
             
-            if (NowTimeVal - LastDisplayTime_Mem >= 1800) { // 30 * 60 = 1800 once every 30 mins
+            if (NowTimeVal - LastDisplayTime_Mem >= 600) { // 10 * 60 = 1800 once every 10 mins
                 NeedFullDraw = true;
                 LastDisplayTime_Mem = NowTimeVal;
                 //System.println("MoonTideView.onUpdate_10Min");    // ########### D E B U G ###############            
@@ -209,7 +209,7 @@ class MoonTideView extends WatchUi.WatchFace {
                     DayTime = false;
                     DawnSec = DawnSecEval;
                 }
-                if ((DawnSecEval <= 660) & (DawnSecEval >= -2400)) { // close to sunrise 2400 = (10 * 60 ) + (30 * 60)
+                if ((DawnSecEval <= 660) & (DawnSecEval >= -1200)) { // close to sunrise 1200 = (10 * 60 ) + (10 * 60)
                     CloseToDawn_Mem = true;
                 }
                 if (DawnSecEval > 600) { // Day
@@ -223,7 +223,7 @@ class MoonTideView extends WatchUi.WatchFace {
                     DayTime = false;
                     DawnSec = DawnSecEval;
                 }
-                if ((DawnSecEval < 2400) & (DawnSecEval >-660)) { // close to sunset 
+                if ((DawnSecEval < 1200) & (DawnSecEval >-660)) { // close to sunset 
                     CloseToDawn_Mem = true;
                 }
                 if (DawnSecEval < -600 ) { // night
@@ -292,6 +292,7 @@ class MoonTideView extends WatchUi.WatchFace {
 // ## G R A P H I C S : ###################################################
 // ########################################################################
 
+                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 dc.clear();
 
 //Moon
@@ -440,7 +441,8 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.drawText(20,110,Graphics.FONT_MEDIUM, System.getSystemStats().battery.toNumber().toString() + "%" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
             } // if (NeedFullDraw == true) (30 min cycle)
 
-// stuff for every minute....
+// stuff for every minute.... (after FullRedraw as Fullredraw clears)
+        dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
 
 // Steps:
         dc.drawText(88, 162, Graphics.FONT_LARGE, ActivityMonitor.getInfo().steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
@@ -451,9 +453,9 @@ class MoonTideView extends WatchUi.WatchFace {
         } //if (NowTime.compare(LastCalcTime_Mem) >= 60)
 
 // Always do these..... (even at 1 sec)
+        //dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
 
-
-        // Call the parent onUpdate function to redraw the layout
+        // Call the parent onUpdate function to redraw the layout - not used
         //View.onUpdate(dc);
     }
 
