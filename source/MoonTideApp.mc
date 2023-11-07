@@ -6,15 +6,23 @@ import Toybox.System;
 import Toybox.Application.Storage;
 import Toybox.Application.Properties;
 
+var TideLat_Mem_Settings = 0;
+var TideLon_Mem_Settings = 0;
+var SunLat_Mem_Settings = 0;
+var SunLon_Mem_Settings = 0;
+var MoonHemisNorth_Mem_Settings = false;
 var newSettings_Mem = false;
 var Tides_Mem as Array<Array<Number>> = [[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1],[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1]] as Array<Array<Number>>;
+
+var TideLowIndex_Mem = 0;
+var TideHighIndex_Mem = 0;
 
 (:background)
 class MoonTideApp extends Application.AppBase {    
 
     function initialize() {
+        //System.println("MoonTideApp.Initialize");          // ########### D E B U G ###############
         AppBase.initialize();
-        // System.println("MoonTideApp.Initialize");          // ########### D E B U G ###############
     }
 
     // onStart() is called on application start up
@@ -31,7 +39,7 @@ class MoonTideApp extends Application.AppBase {
     function getInitialView() as Array<Views or InputDelegates>? {
         //System.println("MoonTideApp.getInitialView");       // ########### D E B U G ###############
         if(Toybox.System has :ServiceDelegate) {
-            Background.registerForTemporalEvent(new Time.Duration(5*60)); // every five minmutes - can´t go faster but should be enought
+            Background.registerForTemporalEvent(new Time.Duration(15*60)); // every fifteen minmutes - can go faster but should be enought
         }
         return [ new MoonTideView() ] as Array<Views or InputDelegates>;
     }
@@ -42,11 +50,23 @@ class MoonTideApp extends Application.AppBase {
             Application.Storage.setValue("TideData", data); //rather store it!
             Tides_Mem = data;
             Storage.setValue("NeedTides",false); // using mem does not work
+            TideLowIndex_Mem = 0;
+            TideHighIndex_Mem = 0;
         }
     }
 
     function onSettingsChanged() {
         //System.println("MoonTideApp.onSettingsChanged");    // ########### D E B U G ###############
+        // Note: aparently getProperty is using lots of battery power - keep out of onUpdate for WF
+        TideLat_Mem_Settings = Properties.getValue("TideLat");
+        TideLon_Mem_Settings = Properties.getValue("TideLon");
+        SunLat_Mem_Settings = Properties.getValue("SunLat");
+        SunLon_Mem_Settings = Properties.getValue("SunLon");
+        MoonHemisNorth_Mem_Settings = Properties.getValue("MoonHemisNorth");
+        var API_Key = Properties.getValue("API_Key");
+        Storage.setValue("API_Key",API_Key);
+        
+        Storage.setValue("NeedTides",true);
         newSettings_Mem = true;
     }
 

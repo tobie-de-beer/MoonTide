@@ -5,6 +5,7 @@
         <property id="TideLon" type="double">32.560</property>
         <property id="SunLat" type="double">100</property>
         <property id="SunLon" type="double">0</property>
+        <property id="MoonHemisNorth" type="boolean">false</property>
     </properties>
 
     <settings>
@@ -22,6 +23,9 @@
         </setting>
         <setting propertyKey="@Properties.SunLon" title="Longitude for Sun">
             <settingConfig type="numeric" required="true"  min="-180" max="180"/>
+        </setting>
+        <setting propertyKey="@Properties.MoonHemisNorth" title="Observation Hemisphere for Moon (On/true=North)">
+            <settingConfig type="boolean" required="true"/>
         </setting>
     </settings>
 </resources>

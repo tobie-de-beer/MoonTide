@@ -73,7 +73,7 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
                       "lat"      => Storage.getValue("TideLat"), // cant'read memory :-( )
                       "lon"      => Storage.getValue("TideLon"), // cant'read memory :-( )
                       "days"     => "11",
-                      "key"      => Properties.getValue("API_Key"), // cant'read memory :-( )
+                      "key"      => Storage.getValue("API_Key"), // cant'read memory :-( )
                     },
                     {
                         :headers => {                                          

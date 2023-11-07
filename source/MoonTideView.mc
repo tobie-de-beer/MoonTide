@@ -15,16 +15,15 @@ import Toybox.Application.Properties;
 class MoonTideView extends WatchUi.WatchFace {
 
     // stuff to keep in memory
-    var TideLat_Mem_Settings = 0;
-    var TideLon_Mem_Settings = 0;
-    var SunLat_Mem_Settings = 0;
-    var SunLon_Mem_Settings = 0;
     var SunLat_Mem = 0;
     var SunLon_Mem = 0;
     var CurLat_Mem = 0;
     var CurLon_Mem = 0;
     var SunRise_Mem;
     var SunSet_Mem;
+    var Floors_Mem = -1;
+    var Steps_Mem = -1;
+    var Battery_Mem = -1;
 
     var NeedNewSunRiseSet_Mem = true;
     var Today_Mem = Time.today().subtract(new Time.Duration(1000000)).value();
@@ -52,10 +51,11 @@ class MoonTideView extends WatchUi.WatchFace {
 
     function interpretSettings() as Void {
         //System.println("MoonTideView.interpretSettings");        // ########### D E B U G ###############
-        TideLat_Mem_Settings = Properties.getValue("TideLat");
-        TideLon_Mem_Settings = Properties.getValue("TideLon");
-        SunLat_Mem_Settings = Properties.getValue("SunLat");
-        SunLon_Mem_Settings = Properties.getValue("SunLon");
+        // moved to onSettingsChanged
+        //TideLat_Mem_Settings = Properties.getValue("TideLat");
+        //TideLon_Mem_Settings = Properties.getValue("TideLon");
+        //SunLat_Mem_Settings = Properties.getValue("SunLat");
+        //SunLon_Mem_Settings = Properties.getValue("SunLon");
         if (TideLat_Mem_Settings == 100) {
             Storage.setValue("TideLat",CurLat_Mem); // using mem does not work in bg
             Storage.setValue("TideLon",CurLon_Mem);  // using mem does not work in bg
@@ -94,52 +94,98 @@ class MoonTideView extends WatchUi.WatchFace {
         if (Storage.getValue("NeedTides") == null) {
             Storage.setValue("NeedTides",true);
         }
+        if (Storage.getValue("TideLowIndex") == null) {
+            Storage.setValue("TideLowIndex",0);
+        }
+        if (Storage.getValue("TideHighIndex") == null) {
+            Storage.setValue("TideHighIndex",0);
+        }
 
         // Settings:
         CurLat_Mem = Storage.getValue("CurrentLat");
         CurLon_Mem = Storage.getValue("CurrentLon");
         Tides_Mem = Storage.getValue("TideData") as Array<Array<Number>>;
+        TideLowIndex_Mem = Storage.getValue("TideLowIndex");
+        TideHighIndex_Mem = Storage.getValue("TideHighIndex");
+    
+        // also done when settings Changed
+        TideLat_Mem_Settings = Properties.getValue("TideLat");
+        TideLon_Mem_Settings = Properties.getValue("TideLon");
+        SunLat_Mem_Settings = Properties.getValue("SunLat");
+        SunLon_Mem_Settings = Properties.getValue("SunLon");
+        var API_Key = Properties.getValue("API_Key");
+        Storage.setValue("API_Key",API_Key);
+    
         interpretSettings();
     }
 
 
-    // Update the view
+    // Update the view ########################################################################################
+    // ########################################################################################################
+    // ########################################################################################################
     function onUpdate(dc as Dc) as Void { // screen is 176x176
         //System.println("MoonTideView.onUpdate");                  // ########### D E B U G ###############            
 
-// #######################################################################
-// ## C A L C U L A T I O N S : ##########################################
-// #######################################################################
 
-// We work a lot with the current time. use a veraible for it:
+        // We work a lot with the current time. use a veraible for it:
         var NowTime = Time.now();
         var NowTimeVal = NowTime.value() as Lang.Number; // use this wherever possible time routines seems more expensive than simple subtraction.
         //dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Every Section should return to this. Changing color takes significant proccessing time
 
 
-// We only update every 30 min except for steps and stairs
-        if (NowTimeVal - LastCalcTime_Mem >= 60) { // only once a minute! - see last bit
+        // We only update every 10 min except for steps and stairs
+        if (NowTimeVal - LastCalcTime_Mem < 60) {
+            // sanity we should never be here.
+        }
+        else {
+
             LastCalcTime_Mem = NowTimeVal;
             //System.println("MoonTideView.onUpdate_1min");         // ########### D E B U G ###############            
 
-            var NeedFullDraw = false;
-            
-            if (NowTimeVal - LastDisplayTime_Mem >= 600) { // 10 * 60 = 1800 once every 10 mins
-                NeedFullDraw = true;
-                LastDisplayTime_Mem = NowTimeVal;
-                //System.println("MoonTideView.onUpdate_10Min");    // ########### D E B U G ###############            
-            }
-// During unset and sunrise we actually also do a full draw every minute
+            var NeedFullRedraw = false;
+            var NeedSunRedraw = false;
 
+            // stuff for every minute.... (after FullRedraw as Fullredraw clears)
+            // @@@@@@@@@@@@/############
+            // @@@@@ CALC and DRAW #####
+            // @@@@@@@@@@@@/############
+            
+            // ### Steps:
+            var Steps = ActivityMonitor.getInfo().steps;
+            if (Steps != Steps_Mem) {
+                Steps_Mem = Steps;
+                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
+                dc.drawText(88, 162, Graphics.FONT_LARGE, Steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+            }
+
+            // ### Stairs:
+            var Floors = ActivityMonitor.getInfo().floorsClimbed;
+            if (Floors != Floors_Mem) {
+                Floors_Mem = Floors;
+                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
+                dc.drawText(88, 14, Graphics.FONT_LARGE, Floors.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+            }
+
+// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// @@ C A L C U L A T I O N S : @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+            // @@@ 10 minute cycle
+            if (NowTimeVal - LastDisplayTime_Mem >= 600) { // 10 * 60 = 1800 once every 10 mins
+                LastDisplayTime_Mem = NowTimeVal;
+                NeedSunRedraw = true; // every 10 mins
+            }
+
+            // @@@ new SETTINGS
             if (newSettings_Mem == true){
                 interpretSettings();
                 newSettings_Mem = false;
                 Storage.setValue("NeedTides",true); // using mem does not work in bg
-                NeedFullDraw = true;
+                NeedFullRedraw = true;
             }
 
-// Solar -- always (every minute)
-            var Solar  = 40;
+            // @@@ SOLAR -- always (every minute)
+            var Solar  = 5; // need to asjust back to 20 odd
             if (System.getSystemStats().solarIntensity != null) {
                 Solar = System.getSystemStats().solarIntensity;
             }
@@ -149,13 +195,14 @@ class MoonTideView extends WatchUi.WatchFace {
                 SolarInd_Mem = 0;
             }
 
-// check coordinates to use
             var DayTime = false;
             var Dawn = false;
             var DawnSec = 0;
 
-            if ((CloseToDawn_Mem == true) | (NeedFullDraw == true)) { // only when neccesary
+            if ((CloseToDawn_Mem == true) | (NeedSunRedraw == true)) { // only when neccesary
                 //System.println("PositionCheck");
+                
+                // @@@ POSTION check coordinates to use
                 if ((TideLat_Mem_Settings == 100) | (SunLat_Mem_Settings == 100)){
                     if (Activity.getActivityInfo().currentLocation != null){
                         //System.println("Found Required Position");
@@ -179,8 +226,7 @@ class MoonTideView extends WatchUi.WatchFace {
                     }
                 }
 
-// check day night dawn
-
+                // @@@ TOD check day night dawn
                 CloseToDawn_Mem = false;
 
                 var Today = Time.today().value();
@@ -188,7 +234,7 @@ class MoonTideView extends WatchUi.WatchFace {
                     //System.println("SunSetRise");
                     Today_Mem = Today;
                     NeedNewSunRiseSet_Mem = false;
-                    NeedFullDraw = true; // date Changed
+                    NeedFullRedraw = true; // date Changed
                     var SunPos = new Position.Location( {
                         :latitude => SunLat_Mem,
                         :longitude => SunLon_Mem,
@@ -212,6 +258,10 @@ class MoonTideView extends WatchUi.WatchFace {
                 if ((DawnSecEval <= 660) & (DawnSecEval >= -1200)) { // close to sunrise 1200 = (10 * 60 ) + (10 * 60)
                     CloseToDawn_Mem = true;
                 }
+                if ((DawnSecEval <= 660) & (DawnSecEval >= -660)) { // close to sunrise 1200 = (10 * 60 ) + (10 * 60)
+                    NeedFullRedraw = true;
+                }
+
                 if (DawnSecEval > 600) { // Day
                     Dawn = false;
                     DayTime = true;
@@ -223,59 +273,64 @@ class MoonTideView extends WatchUi.WatchFace {
                     DayTime = false;
                     DawnSec = DawnSecEval;
                 }
-                if ((DawnSecEval < 1200) & (DawnSecEval >-660)) { // close to sunset 
+                if ((DawnSecEval <= 1200) & (DawnSecEval >= -660)) { // close to sunset 
                     CloseToDawn_Mem = true;
+                }
+                if ((DawnSecEval <= 660) & (DawnSecEval >= -660)) { // close to sunset 
+                    NeedFullRedraw = true;
                 }
                 if (DawnSecEval < -600 ) { // night
                     Dawn = false;
                     DayTime = false;
                 }
-                if (Dawn == true){
-                    NeedFullDraw = true;
+            } // CloseToDawn_Mem NeedSunRedraw
+
+            var LowTide = 0;
+            var HighTide = 0;
+
+            if ((NeedSunRedraw == true) | (NeedFullRedraw == true)) { // the following only happens every 10 min! (or at Dawn)
+                //System.println("SunRedraw");
+                
+                // @@@ BATTERY
+                var Battery = System.getSystemStats().battery;
+                if (Battery != Battery_Mem) {
+                    Battery_Mem = Battery;
+                    NeedFullRedraw = true;
                 }
-            } // if ((CloseToDawn_Mem == true) | (NeedFullDraw == true))
 
-
-
-            if (NeedFullDraw == true) { // the following only happens every 30 min! (or at Dawn)
-                //System.println("FullDraw");
-
-// Tide
-// if new tide data was received we need to process that we also set the request for new data here
-                //var TideCheckTime = NowTime.subtract(new Time.Duration(3*60*60)).value();
+                // @@@ TIDE
+                // if new tide data was received we need to process that we also set the request for new data here
                 var TideCheckTime = NowTimeVal - (3*60*60);
-            
-                //var TidePos = new Position.Location( {
-                //    :latitude => TideLat,
-                //    :longitude => TideLon,
-                //    :format => :degrees
-                //);
-
-                //var TideTimeOffsetNow = Time.Gregorian.localMoment(TidePos,NowTime);
-
                 var TideTimeOffset = System.getClockTime().timeZoneOffset;
 
                 var NeedTides = false;
 
-                var Ti=0;
-                while ((TideCheckTime > Tides_Mem[0][Ti]) & (Ti<19)) { Ti+=1; }
-                if (Ti>2) { NeedTides = true; } 
-                var Tide = (Tides_Mem[0][Ti] + TideTimeOffset)/(12.0*60*60);
-                var HighTide = Tide - Math.floor(Tide); // 0 to one as around the clock once => 12 hr
+                if ((TideCheckTime > Tides_Mem[0][TideHighIndex_Mem]) & (TideHighIndex_Mem<19)) { 
+                    TideHighIndex_Mem +=1;
+                    NeedFullRedraw = true;
+                }
+                if (TideHighIndex_Mem>2) { NeedTides = true; } 
+                var Tide = (Tides_Mem[0][TideHighIndex_Mem] + TideTimeOffset)/(12.0*60*60);
+                HighTide = Tide - Math.floor(Tide); // 0 to one as around the clock once => 12 hr
 
-                Ti=0;
-                while ((TideCheckTime > Tides_Mem[1][Ti]) & (Ti<19)) { Ti+=1; }
-                if (Ti>2) { NeedTides = true; } 
-                Tide = (Tides_Mem[1][Ti] + TideTimeOffset)/(12.0*60*60);
-                var LowTide = Tide - Math.floor(Tide);
+                if ((TideCheckTime > Tides_Mem[1][TideLowIndex_Mem]) & (TideLowIndex_Mem<19)) { 
+                    TideLowIndex_Mem+=1; 
+                    NeedFullRedraw = true;
+                }
+                if (TideLowIndex_Mem>2) { NeedTides = true; } 
+                Tide = (Tides_Mem[1][TideLowIndex_Mem] + TideTimeOffset)/(12.0*60*60);
+                LowTide = Tide - Math.floor(Tide);
 
                 if (NeedTides == true) {  // using mem does not work in bg 
                     if (Storage.getValue("NeedTides") == false) { //- Minimize writing.
                         Storage.setValue("NeedTides",true); 
                     }
                 }
-// Moon
-// set the age of the moon, drawing happens in Graphics
+            } //NeedSunRedraw or NeedFullRedraw Calcs
+
+            if (NeedFullRedraw == true ) {
+                // @@@ MOON
+                // set the age of the moon, drawing happens in Graphics
                 var ReferenceNewMoonOptions = {
                     :year  => 2023,
                     :month =>    9,
@@ -287,6 +342,9 @@ class MoonTideView extends WatchUi.WatchFace {
                 var MoonSinceReference = NowTime.compare(ReferenceNewMoon)/60/60/24 / 29.53;
                 var MoonNumber =  Math.floor(MoonSinceReference);
                 var MoonAge = MoonSinceReference - MoonNumber;
+                if (MoonHemisNorth_Mem_Settings == true) {
+                    MoonAge = 1.0 - MoonAge;
+                }
 
 // ########################################################################
 // ## G R A P H I C S : ###################################################
@@ -295,7 +353,7 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 dc.clear();
 
-//Moon
+                // ### MOON
                 var MoonR = 23.5;
                 var MoonX = 35.5; // added half points makes the maths work nice
                 var MoonY = 35;
@@ -329,8 +387,11 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
                 dc.fillPolygon(MoonBlank); // ##### BLACK #####
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
+            }
 
-// sun and stars System Stats solarIntensity
+            if ((NeedFullRedraw == true) | (NeedSunRedraw == true)) {
+
+                // ### SUN and STARS System Stats solarIntensity
 
                 //Dawn = true;
                 //DawnSec = -600;
@@ -340,7 +401,6 @@ class MoonTideView extends WatchUi.WatchFace {
                     SolarLight += SolarArray_Mem[i];
                 }
 
-// not working well                var Ray = (3.0*Math.log(SolarLight+1.0,10)).toNumber()+1;
                 var Ray = 2;
                 if (SolarLight >0) { Ray = 3;}
                 if (SolarLight >1) { Ray = 4;}
@@ -355,10 +415,17 @@ class MoonTideView extends WatchUi.WatchFace {
                 if (SolarLight >512) { Ray = 13;}
                 if (SolarLight >1024) { Ray = 14;}
 
-    // day
+                // # blank
+                var SunX = 140;
+                var SunY = 30;
+                if (NeedFullRedraw == false) { // will be already blanked during fullredraw
+                    dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
+                    dc.fillCircle(SunX, SunY, 28);
+                    dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
+                }
+
+                // # day
                 if ((DayTime == true) & (Dawn == false)){
-                    var SunX = 140;
-                    var SunY = 30;
                     dc.fillCircle(SunX, SunY, 8);
                     for (var i=0;i<8;i+=1) {
                         dc.drawLine(SunX + 10*Math.cos(i/4.0*Math.PI+Math.PI/8), SunY + 10*Math.sin(i/4.0*Math.PI+Math.PI/8), 
@@ -366,35 +433,37 @@ class MoonTideView extends WatchUi.WatchFace {
                     }
 
                 }
-    // night
+
+                // # night
                 if ((DayTime == false) & (Dawn == false)) {
                     var StarX = 130;
                     var StarY =  20;
                     var StarR =   1;
                     dc.drawLine(StarX-StarR, StarY, StarX+StarR+1, StarY);
                     dc.drawLine(StarX, StarY-StarR, StarX, StarY+StarR+1);
-                    StarX = 150;
-                    StarY =  30;
+                    StarX = 155;
+                    StarY =  40;
                     StarR =   2;
                     dc.drawLine(StarX-StarR, StarY, StarX+StarR+1, StarY);
                     dc.drawLine(StarX, StarY-StarR, StarX, StarY+StarR+1);
                     StarX = 160;
-                    StarY =  60;
+                    StarY =  55;
                     StarR =   1;
                     dc.drawLine(StarX-StarR, StarY, StarX+StarR+1, StarY);
                     dc.drawLine(StarX, StarY-StarR, StarX, StarY+StarR+1);
-                    StarX = 140;
-                    StarY =  40;
+                    StarX = SunX;
+                    StarY = SunY;
                     StarR =   Ray;
                     dc.drawLine(StarX-StarR, StarY, StarX+StarR+1, StarY);
                     dc.drawLine(StarX, StarY-StarR, StarX, StarY+StarR+1);
                 }
-    //dawn
+
+                // # dawn Note: This requires 40 full redraws per day (Tides = 4;  Battery up to 10; Date = 1)
                 if (Dawn == true){
                     dc.drawLine( 140, 70, 176 , 70); // horizon            
 
-                    var SunX = 158-(2*DawnSec/60);
-                    var SunY = 70 - (4*DawnSec/60);
+                    SunX = 158-(2*DawnSec/60);
+                    SunY = 70 - (4*DawnSec/60);
                     dc.fillCircle(SunX, SunY, 8);
                     for (var i=0;i<8;i+=1) {
                         dc.drawLine(SunX + 10*Math.cos(i/4.0*Math.PI+Math.PI/8), SunY + 10*Math.sin(i/4.0*Math.PI+Math.PI/8), 
@@ -405,12 +474,14 @@ class MoonTideView extends WatchUi.WatchFace {
                     dc.fillRectangle(88, 71, 88, 88); // blank below horizon // ##### BLACK #####
                     dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
                 }
+            } // NeedFullRedraw or NeedSunRedraw
 
-// Tides note: need to be after sun and stars - possible interference with below horizon stuff
 
+            if (NeedFullRedraw == true) {
+
+                // ### TIDES note: need to be after sun and stars - possible interference with below horizon stuff during dawn
                 var TideCirc = 15;
                 var TideArc = 35;
-
 
                 var TideX = 88+TideArc*Math.sin(LowTide*2*Math.PI);
                 var TideY = 88-TideArc*Math.cos(LowTide*2*Math.PI);
@@ -423,7 +494,7 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.drawText(TideX+1,TideY-1,Graphics.FONT_MEDIUM, "H" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER); // ##### BLACK #####
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
 
-// Date note: need to be after sun and stars due to belo horizon blank
+                // ### DATE note: need to be after sun and stars due to belo horizon blank
                 dc.fillRoundedRectangle(140, 88-15, 34, 31, 3);
                 var date = Gregorian.info(NowTime, Time.FORMAT_MEDIUM);
                 dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
@@ -431,7 +502,7 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
                 dc.drawText(155,120,Graphics.FONT_LARGE, date.day_of_week.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
-// battery
+                // ### BATTERY
                 dc.fillRoundedRectangle(2, 88-10, 34, 20, 3);
                 dc.fillRoundedRectangle(36, 88-5, 4, 10, 3);
                 dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
@@ -439,18 +510,15 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK); // Back to normal
                 dc.fillRoundedRectangle(5, 88-7, 3+25*(System.getSystemStats().battery/100), 14, 1);
                 dc.drawText(20,110,Graphics.FONT_MEDIUM, System.getSystemStats().battery.toNumber().toString() + "%" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
-            } // if (NeedFullDraw == true) (30 min cycle)
 
-// stuff for every minute.... (after FullRedraw as Fullredraw clears)
-        dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
+                // ### STEPS after fullredraw
+                dc.drawText(88, 162, Graphics.FONT_LARGE, Steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                // ### FLOORS after fullredraw
+                dc.drawText(88, 14, Graphics.FONT_LARGE, Floors.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
-// Steps:
-        dc.drawText(88, 162, Graphics.FONT_LARGE, ActivityMonitor.getInfo().steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+            } // NeedFullRedraw
 
-// Stairs:
-        dc.drawText(88, 14, Graphics.FONT_LARGE, ActivityMonitor.getInfo().floorsClimbed.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
-
-        } //if (NowTime.compare(LastCalcTime_Mem) >= 60)
+        } // else if (NowTime.compare(LastCalcTime_Mem) < 60)
 
 // Always do these..... (even at 1 sec)
         //dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
@@ -469,6 +537,12 @@ class MoonTideView extends WatchUi.WatchFace {
         }
         if (Storage.getValue("CurrentLon" != CurLon_Mem)) { //- Minimize writing.
             Storage.setValue("CurrentLon", CurLon_Mem);
+        }
+        if (Storage.getValue("TideLowIndex") != TideLowIndex_Mem) {
+            Storage.setValue("TideLowIndex", TideLowIndex_Mem);
+        }
+        if (Storage.getValue("TideHighIndex") != TideHighIndex_Mem) {
+            Storage.setValue("TideHighIndex", TideHighIndex_Mem);
         }
     }
 
