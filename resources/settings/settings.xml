@@ -6,6 +6,7 @@
         <property id="SunLat" type="double">100</property>
         <property id="SunLon" type="double">0</property>
         <property id="MoonHemisNorth" type="boolean">false</property>
+        <property id="DawnFunction" type="boolean">false</property>
     </properties>
 
     <settings>
@@ -25,6 +26,9 @@
             <settingConfig type="numeric" required="true"  min="-180" max="180"/>
         </setting>
         <setting propertyKey="@Properties.MoonHemisNorth" title="Observation Hemisphere for Moon (On/true=North)">
+            <settingConfig type="boolean" required="true"/>
+        </setting>
+        <setting propertyKey="@Properties.DawnFunction" title="Sunrise/Sunset at Dawn (animation)">
             <settingConfig type="boolean" required="true"/>
         </setting>
     </settings>

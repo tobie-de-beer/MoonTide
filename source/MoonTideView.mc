@@ -17,8 +17,6 @@ class MoonTideView extends WatchUi.WatchFace {
     // stuff to keep in memory
     var SunLat_Mem = 0;
     var SunLon_Mem = 0;
-    var CurLat_Mem = 0;
-    var CurLon_Mem = 0;
     var SunRise_Mem;
     var SunSet_Mem;
     var Floors_Mem = -1;
@@ -246,42 +244,60 @@ class MoonTideView extends WatchUi.WatchFace {
 
                 var DawnTime = SunRise_Mem;
                 var DawnSecEval = NowTimeVal - DawnTime; // Positive is sun is up
-                if (DawnSecEval < -600) { // moring before sunrise
-                    DayTime = false;
-                    Dawn = false;
-                }
-                if ((DawnSecEval <= 600) & (DawnSecEval >= -600)) { // sunrise
-                    Dawn = true;
-                    DayTime = false;
-                    DawnSec = DawnSecEval;
-                }
-                if ((DawnSecEval <= 660) & (DawnSecEval >= -1200)) { // close to sunrise 1200 = (10 * 60 ) + (10 * 60)
-                    CloseToDawn_Mem = true;
-                }
-                if ((DawnSecEval <= 660) & (DawnSecEval >= -660)) { // close to sunrise 1200 = (10 * 60 ) + (10 * 60)
-                    NeedFullRedraw = true;
-                }
+                if (DawnFunction_Mem_Settings == true) {
+                    if (DawnSecEval < -600) { // moring before sunrise
+                        DayTime = false;
+                        Dawn = false;
+                    }
+                    if ((DawnSecEval <= 600) & (DawnSecEval >= -600)) { // sunrise
+                        Dawn = true;
+                        DayTime = false;
+                        DawnSec = DawnSecEval;
+                    }
+                    if ((DawnSecEval <= 660) & (DawnSecEval >= -1200)) { // close to sunrise 1200 = (10 * 60 ) + (10 * 60)
+                        CloseToDawn_Mem = true;
+                    }
+                    if ((DawnSecEval <= 660) & (DawnSecEval >= -660)) { // close to sunrise 1200 = (10 * 60 ) + (10 * 60)
+                        NeedFullRedraw = true;
+                    }
 
-                if (DawnSecEval > 600) { // Day
-                    Dawn = false;
-                    DayTime = true;
+                    if (DawnSecEval > 600) { // Day
+                        Dawn = false;
+                        DayTime = true;
+                    }
+                }
+                else {   // no Dawn Animation
+                    Dawn = false;   
+                    if (DawnSecEval < 0) { // moring before sunrise
+                        DayTime = false;
+                    }
+                    else {
+                        DayTime = true;
+                    }
                 }
                 DawnTime = SunSet_Mem;
                 DawnSecEval = DawnTime - NowTimeVal; // Positive is sun is (still) up
-                if ((DawnSecEval <= 600) & (DawnSecEval >= -600)){ // sunset
-                    Dawn = true;
-                    DayTime = false;
-                    DawnSec = DawnSecEval;
+                if (DawnFunction_Mem_Settings == true) {
+                    if ((DawnSecEval <= 600) & (DawnSecEval >= -600)){ // sunset
+                        Dawn = true;
+                        DayTime = false;
+                        DawnSec = DawnSecEval;
+                    }
+                    if ((DawnSecEval <= 1200) & (DawnSecEval >= -660)) { // close to sunset 
+                        CloseToDawn_Mem = true;
+                    }
+                    if ((DawnSecEval <= 660) & (DawnSecEval >= -660)) { // close to sunset 
+                        NeedFullRedraw = true;
+                    }
+                    if (DawnSecEval < -600 ) { // night
+                        Dawn = false;
+                        DayTime = false;
+                    }
                 }
-                if ((DawnSecEval <= 1200) & (DawnSecEval >= -660)) { // close to sunset 
-                    CloseToDawn_Mem = true;
-                }
-                if ((DawnSecEval <= 660) & (DawnSecEval >= -660)) { // close to sunset 
-                    NeedFullRedraw = true;
-                }
-                if (DawnSecEval < -600 ) { // night
-                    Dawn = false;
-                    DayTime = false;
+                else { // no Dawn Animation
+                    if (DawnSecEval < 0 ) { // night
+                        DayTime = false;
+                    }
                 }
             } // CloseToDawn_Mem NeedSunRedraw
 

@@ -65,7 +65,7 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
     function onTemporalEvent() {
         //System.println("MoonTideBackground.onTemporalEvent");    // ########### D E B U G ###############    
         if (Storage.getValue("NeedTides") == true) { // cant'read memory :-( )
-//            if (System.ConnectionInfo == CONNECTION_STATE_CONNECTED) {
+//            if (System.ConnectionInfo == CONNECTION_STATE_CONNECTED) { //System.getDeviceSettings().connectionInfo connectionAvailable phone connected
                 //System.println("MoonTideBackgroun.onTemporalEvent.WebRequest\n");    // ########### D E B U G ###############
                 Communications.makeWebRequest(
                     "https://www.worldtides.info/api/v3",

@@ -6,11 +6,14 @@ import Toybox.System;
 import Toybox.Application.Storage;
 import Toybox.Application.Properties;
 
+var CurLat_Mem = 0;
+var CurLon_Mem = 0;
 var TideLat_Mem_Settings = 0;
 var TideLon_Mem_Settings = 0;
 var SunLat_Mem_Settings = 0;
 var SunLon_Mem_Settings = 0;
 var MoonHemisNorth_Mem_Settings = false;
+var DawnFunction_Mem_Settings = true;
 var newSettings_Mem = false;
 var Tides_Mem as Array<Array<Number>> = [[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1],[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1]] as Array<Array<Number>>;
 
@@ -51,7 +54,15 @@ class MoonTideApp extends Application.AppBase {
             Tides_Mem = data;
             Storage.setValue("NeedTides",false); // using mem does not work
             TideLowIndex_Mem = 0;
+            Storage.setValue("TideLowIndex",0);
             TideHighIndex_Mem = 0;
+            Storage.setValue("TideHighIndex",0);
+            if (Storage.getValue("CurrentLat" != CurLat_Mem)) { //- Minimize writing.
+                Storage.setValue("CurrentLat", CurLat_Mem);
+            }
+            if (Storage.getValue("CurrentLon" != CurLon_Mem)) { //- Minimize writing.
+                Storage.setValue("CurrentLon", CurLon_Mem);
+            }
         }
     }
 
@@ -63,6 +74,7 @@ class MoonTideApp extends Application.AppBase {
         SunLat_Mem_Settings = Properties.getValue("SunLat");
         SunLon_Mem_Settings = Properties.getValue("SunLon");
         MoonHemisNorth_Mem_Settings = Properties.getValue("MoonHemisNorth");
+        DawnFunction_Mem_Settings = Properties.getValue("DawnFunction");
         var API_Key = Properties.getValue("API_Key");
         Storage.setValue("API_Key",API_Key);
         
