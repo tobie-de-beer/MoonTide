@@ -19,6 +19,7 @@ var Tides_Mem as Array<Array<Number>> = [[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1
 
 var TideLowIndex_Mem = 0;
 var TideHighIndex_Mem = 0;
+var TaskerData_Mem = "R111" as String;
 
 (:background)
 class MoonTideApp extends Application.AppBase {    
@@ -49,19 +50,31 @@ class MoonTideApp extends Application.AppBase {
 
     function onBackgroundData(data) {
         //System.println("MoonTideApp.onBackgroundData");     // ########### D E B U G ############### 
-        if (data != null) {
-            Application.Storage.setValue("TideData", data); //rather store it!
-            Tides_Mem = data;
-            Storage.setValue("NeedTides",false); // using mem does not work
-            TideLowIndex_Mem = 0;
-            Storage.setValue("TideLowIndex",0);
-            TideHighIndex_Mem = 0;
-            Storage.setValue("TideHighIndex",0);
-            if (Storage.getValue("CurrentLat" != CurLat_Mem)) { //- Minimize writing.
-                Storage.setValue("CurrentLat", CurLat_Mem);
+        if (data instanceof Dictionary) {
+            if (data["Text"].equals("$Tides$")){
+                Application.Storage.setValue("TideData", data["Tides"]); //rather store it!
+                Tides_Mem = data["Tides"];
+                Storage.setValue("NeedTides",false); // using mem does not work
+                TideLowIndex_Mem = 0;
+                Storage.setValue("TideLowIndex",0);
+                TideHighIndex_Mem = 0;
+                Storage.setValue("TideHighIndex",0);
+                if (Storage.getValue("CurrentLat" != CurLat_Mem)) { //- Minimize writing.
+                    Storage.setValue("CurrentLat", CurLat_Mem);
+                }
+                if (Storage.getValue("CurrentLon" != CurLon_Mem)) { //- Minimize writing.
+                    Storage.setValue("CurrentLon", CurLon_Mem);
+                }
+                if (Storage.getValue("TaskerData") != TaskerData_Mem) { // - Minimize writing.
+                    Storage.setValue("TaskerData", TaskerData_Mem);
+                }
+
             }
-            if (Storage.getValue("CurrentLon" != CurLon_Mem)) { //- Minimize writing.
-                Storage.setValue("CurrentLon", CurLon_Mem);
+            if (data["Text"].equals("$Null$")){
+                // nothing
+            }
+            else {
+                TaskerData_Mem = data["Text"];
             }
         }
     }
@@ -77,7 +90,6 @@ class MoonTideApp extends Application.AppBase {
         DawnFunction_Mem_Settings = Properties.getValue("DawnFunction");
         var API_Key = Properties.getValue("API_Key");
         Storage.setValue("API_Key",API_Key);
-        
         Storage.setValue("NeedTides",true);
         newSettings_Mem = true;
     }
