@@ -7,6 +7,8 @@
         <property id="SunLon" type="double">0</property>
         <property id="MoonHemisNorth" type="boolean">false</property>
         <property id="DawnFunction" type="boolean">false</property>
+        <property id="TaskerFunction" type="boolean">false</property>
+        <property id="TaskerPage" type="string">http://127.0.0.1:1821/MoonTide</property>
     </properties>
 
     <settings>
@@ -30,6 +32,12 @@
         </setting>
         <setting propertyKey="@Properties.DawnFunction" title="Sunrise/Sunset at Dawn (animation)">
             <settingConfig type="boolean" required="true"/>
+        </setting>
+        <setting propertyKey="@Properties.TaskerFunction" title="Enable Data from Tasker/WebPage">
+            <settingConfig type="boolean" required="true"/>
+        </setting>
+        <setting propertyKey="@Properties.TaskerPage" title="Tasker/Web Page (Must produce less than 10 chars)">
+            <settingConfig type="alphaNumeric" required="true" />
         </setting>
     </settings>
 </resources>

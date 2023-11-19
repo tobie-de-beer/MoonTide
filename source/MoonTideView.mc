@@ -99,9 +99,6 @@ class MoonTideView extends WatchUi.WatchFace {
         if (Storage.getValue("TideHighIndex") == null) {
             Storage.setValue("TideHighIndex",0);
         }
-        if (Storage.getValue("TaskerData") == null) {
-            Storage.setValue("TaskerData","-");
-        }
 
         // Settings:
         CurLat_Mem = Storage.getValue("CurrentLat");
@@ -109,13 +106,17 @@ class MoonTideView extends WatchUi.WatchFace {
         Tides_Mem = Storage.getValue("TideData") as Array<Array<Number>>;
         TideLowIndex_Mem = Storage.getValue("TideLowIndex");
         TideHighIndex_Mem = Storage.getValue("TideHighIndex");
-        TaskerData_Mem = Storage.getValue("TaskerData");
 
         // also done when settings Changed
         TideLat_Mem_Settings = Properties.getValue("TideLat");
         TideLon_Mem_Settings = Properties.getValue("TideLon");
         SunLat_Mem_Settings = Properties.getValue("SunLat");
         SunLon_Mem_Settings = Properties.getValue("SunLon");
+
+        TaskerFunction_Mem_Settings = Properties.getValue("TaskerFunction");
+        Storage.setValue("TaskerFunction",TaskerFunction_Mem_Settings);
+        var TaskerPage = Properties.getValue("TaskerPage");
+        Storage.setValue("TaskerPage",TaskerPage);
         var API_Key = Properties.getValue("API_Key");
         Storage.setValue("API_Key",API_Key);
     
@@ -170,10 +171,12 @@ class MoonTideView extends WatchUi.WatchFace {
             }
 
             // ### TaskerData
-            if (TaskerData_Mem.equals(TaskerData_Mem_Old) ==  false) { //TaskerData_Mem
-                TaskerData_Mem_Old = TaskerData_Mem;
-                dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
-                dc.drawText(2, 135, Graphics.FONT_SMALL, TaskerData_Mem , Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
+            if (TaskerFunction_Mem_Settings == true) {
+                if (TaskerData_Mem.equals(TaskerData_Mem_Old) ==  false) { //TaskerData_Mem
+                    TaskerData_Mem_Old = TaskerData_Mem;
+                    dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
+                    dc.drawText(2, 135, Graphics.FONT_SMALL, TaskerData_Mem , Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
+                }
             }
 
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -539,12 +542,16 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.fillRoundedRectangle(5, 88-7, 3+25*(System.getSystemStats().battery/100), 14, 1);
                 dc.drawText(20,110,Graphics.FONT_MEDIUM, System.getSystemStats().battery.toNumber().toString() + "%" , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
+                // ### Need to draw these after  (ath the end) fulredraw an fullredraw will wipe them
+
                 // ### STEPS after fullredraw
                 dc.drawText(88, 162, Graphics.FONT_LARGE, Steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
                 // ### FLOORS after fullredraw
                 dc.drawText(88, 14, Graphics.FONT_LARGE, Floors.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
-                // ### TASKER_DATA
-                dc.drawText(2, 135, Graphics.FONT_SMALL, TaskerData_Mem , Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
+                // ### TASKER_DATA after fullredraw
+                if (TaskerFunction_Mem_Settings == true) {
+                    dc.drawText(2, 135, Graphics.FONT_SMALL, TaskerData_Mem , Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
+                }
 
             } // NeedFullRedraw
 
@@ -573,9 +580,6 @@ class MoonTideView extends WatchUi.WatchFace {
         }
         if (Storage.getValue("TideHighIndex") != TideHighIndex_Mem) {
             Storage.setValue("TideHighIndex", TideHighIndex_Mem);
-        }
-        if (Storage.getValue("TaskerData") != TaskerData_Mem) {
-            Storage.setValue("TaskerData", TaskerData_Mem);
         }
     }
 

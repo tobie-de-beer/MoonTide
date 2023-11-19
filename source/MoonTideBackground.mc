@@ -81,8 +81,12 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
             }
         }
         else {
-            Background.exit(null);
-        }
+            var Reply = {
+                "Text" => "$Null$",
+                "Tides" => [HighTide,LowTide]
+            };
+            Background.exit(Reply);        
+        }    
     }
 
     function onTemporalEvent() {
@@ -109,19 +113,28 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
                 );
             }
             else {
-                Communications.makeWebRequest(
-                    "http://127.0.0.1:1821/MoonTide",
-                    {
-                    },
-                    {
-                        :headers => {                                          
-                           "Content-Type" => Communications.REQUEST_CONTENT_TYPE_URL_ENCODED
+                if (Storage.getValue("TaskerFunction") == true) {
+                    Communications.makeWebRequest(
+                        Storage.getValue("TaskerPage"), //"http://127.0.0.1:1821/MoonTide",
+                        {
                         },
-                        :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_TEXT_PLAIN
-                    },
-                    method(:onWebReply)
-                );
-            }
+                        {
+                            :headers => {                                          
+                               "Content-Type" => Communications.REQUEST_CONTENT_TYPE_URL_ENCODED
+                            },
+                            :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_TEXT_PLAIN
+                        },
+                        method(:onWebReply)
+                    );
+                }
+                else {
+                    var Reply = {
+                        "Text" => "$Null$",
+                    "Tides" => [Tide,Tide]
+                    };
+                    Background.exit(Reply);
+                } //Tasker Function
+            } //NeedTides
         }
         else {
             var Reply = {
@@ -129,7 +142,7 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
                 "Tides" => [Tide,Tide]
             };
             Background.exit(Reply);
-        }
-    }    
+        } // Connected
+    } // onTemporalEvent
 
-}
+} // Class
