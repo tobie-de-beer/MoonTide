@@ -21,6 +21,7 @@ var Tides_Mem as Array<Array<Number>> = [[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1
 var TideLowIndex_Mem = 0;
 var TideHighIndex_Mem = 0;
 var TaskerData_Mem = "-" as String;
+//var TaskerDataRx = false as Boolean;
 
 (:background)
 class MoonTideApp extends Application.AppBase {    
@@ -51,14 +52,18 @@ class MoonTideApp extends Application.AppBase {
 
     function onBackgroundData(data) {
         //System.println("MoonTideApp.onBackgroundData");     // ########### D E B U G ############### 
-        if (data instanceof Dictionary) {
-            if (data["Text"].equals("$Tides$")){ // This shouled be around once a day
-                Application.Storage.setValue("TideData", data["Tides"]); //rather store it!
-                Tides_Mem = data["Tides"];
+        if (data != null) {
+            if (data instanceof Array) {
+                Application.Storage.setValue("TideData", data); //rather store it!
+                for (var i=0;i<2;i+=1) {
+                    for (var j=0;j<20;j++) {
+                        Tides_Mem[i][j] = data[i][j];
+                    }
+                }
                 Storage.setValue("NeedTides",false); // using mem does not work
-                TideLowIndex_Mem = 0;
+                TideLowIndex_Mem = -1;
                 Storage.setValue("TideLowIndex",0);
-                TideHighIndex_Mem = 0;
+                TideHighIndex_Mem = -1;
                 Storage.setValue("TideHighIndex",0);
                 // store some stuff just in case OnHide() does not work
                 if (Storage.getValue("CurrentLat" != CurLat_Mem)) { //- Minimize writing.
@@ -67,18 +72,11 @@ class MoonTideApp extends Application.AppBase {
                 if (Storage.getValue("CurrentLon" != CurLon_Mem)) { //- Minimize writing.
                     Storage.setValue("CurrentLon", CurLon_Mem);
                 }
-                if (Storage.getValue("TaskerData") != TaskerData_Mem) { // - Minimize writing.
-                    Storage.setValue("TaskerData", TaskerData_Mem);
-                }
-
-            }
-            else {
-                if (data["Text"].equals("$Null$")){
-                // nothing
-                }
-                else {
-                    TaskerData_Mem = data["Text"];
-                }
+                TaskerData_Mem = "Tides";
+            }   
+            if (data instanceof String) {
+                TaskerData_Mem = data;
+                //TaskerDataRx = true;
             }
         }
     }
@@ -92,13 +90,15 @@ class MoonTideApp extends Application.AppBase {
         SunLon_Mem_Settings = Properties.getValue("SunLon");
         MoonHemisNorth_Mem_Settings = Properties.getValue("MoonHemisNorth");
         DawnFunction_Mem_Settings = Properties.getValue("DawnFunction");
-        // these are used in the backgroun process - currently I cannot access changes on memory - use storage
+        // these are used in the background process - currently I cannot access changes on memory - use storage
         TaskerFunction_Mem_Settings = Properties.getValue("TaskerFunction");
         Storage.setValue("TaskerFunction",TaskerFunction_Mem_Settings);
         var TaskerPage = Properties.getValue("TaskerPage");
         Storage.setValue("TaskerPage",TaskerPage);
         var API_Key = Properties.getValue("API_Key");
         Storage.setValue("API_Key",API_Key);
+
+        // the above is also excute onShow - ea start of WF, below is extra to indicate new settings
         Storage.setValue("NeedTides",true);
         newSettings_Mem = true;
     }

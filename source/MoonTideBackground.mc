@@ -47,53 +47,36 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
                         //LowTide[i/2] = data["extremes"][i+Low]["dt"];
                         LowTide[i/2] = Tides[i+Low]["dt"];
                     }
-                    var Reply = {
-                        "Text" => "$Tides$",
-                        "Tides" => [HighTide,LowTide]
-                    };
-                    Background.exit(Reply);
+                    Background.exit([HighTide,LowTide]);
                 }
                 else {
-                        var Reply = {
-                            "Text" => "$Null$",
-                            "Tides" => [HighTide,LowTide]
-                        };
-                        Background.exit(Reply);
+                        Background.exit(null);
                 }
             }
             else {
                 if (data instanceof String) {
                     if (data.length() < 10) {
-                        var Reply = {
-                            "Text" => data,
-                            "Tides" => [HighTide,LowTide]
-                        };
-                        Background.exit(Reply);
+                        Background.exit(data.toString()); 
+                    }
+                    else {
+                        Background.exit(null);
                     }
                 }
                 else {
-                        var Reply = {
-                            "Text" => "$Null$",
-                            "Tides" => [HighTide,LowTide]
-                        };
-                        Background.exit(Reply);
+                    Background.exit(null);
                 }
             }
         }
         else {
-            var Reply = {
-                "Text" => "$Null$",
-                "Tides" => [HighTide,LowTide]
-            };
-            Background.exit(Reply);        
+            Background.exit(null);        
         }    
     }
 
     function onTemporalEvent() {
         //System.println("MoonTideBackground.onTemporalEvent");    // ########### D E B U G ###############    
-        var Tide = [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1];
+        //var Tide = [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1];
         if (System.getDeviceSettings().connectionAvailable == true) { //System.getDeviceSettings().connectionInfo connectionAvailable phone connected
-            System.println("MoonTideBackgroun.onTemporalEvent.WebRequest\n");    // ########### D E B U G ###############
+            //System.println("MoonTideBackgroun.onTemporalEvent.WebRequest\n");    // ########### D E B U G ###############
             if (Storage.getValue("NeedTides") == true) { // cant'read memory :-( )
                 Communications.makeWebRequest(
                     "https://www.worldtides.info/api/v3",
@@ -128,20 +111,12 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
                     );
                 }
                 else {
-                    var Reply = {
-                        "Text" => "$Null$",
-                    "Tides" => [Tide,Tide]
-                    };
-                    Background.exit(Reply);
+                    Background.exit(null);
                 } //Tasker Function
             } //NeedTides
         }
         else {
-            var Reply = {
-                "Text" => "$Null$",
-                "Tides" => [Tide,Tide]
-            };
-            Background.exit(Reply);
+            Background.exit(null);
         } // Connected
     } // onTemporalEvent
 

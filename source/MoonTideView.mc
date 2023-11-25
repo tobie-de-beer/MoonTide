@@ -33,8 +33,7 @@ class MoonTideView extends WatchUi.WatchFace {
     var SolarArray_Mem as Array<Lang.Number> = [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1] as Array<Lang.Number>;
     var SolarInd_Mem = 0;
     var CloseToDawn_Mem = true;
-    var TaskerData_Mem_Old = "" as String;
-    // var MoonS_Mem = true;
+    var TaskerDataOld_Mem = " ".toCharArray();
 
     function initialize() {
         WatchFace.initialize();
@@ -93,25 +92,20 @@ class MoonTideView extends WatchUi.WatchFace {
         if (Storage.getValue("NeedTides") == null) {
             Storage.setValue("NeedTides",true);
         }
-        if (Storage.getValue("TideLowIndex") == null) {
-            Storage.setValue("TideLowIndex",0);
-        }
-        if (Storage.getValue("TideHighIndex") == null) {
-            Storage.setValue("TideHighIndex",0);
-        }
-
         // Settings:
         CurLat_Mem = Storage.getValue("CurrentLat");
         CurLon_Mem = Storage.getValue("CurrentLon");
         Tides_Mem = Storage.getValue("TideData") as Array<Array<Number>>;
-        TideLowIndex_Mem = Storage.getValue("TideLowIndex");
-        TideHighIndex_Mem = Storage.getValue("TideHighIndex");
+        TideLowIndex_Mem = 0;
+        TideHighIndex_Mem = 0;
 
         // also done when settings Changed
         TideLat_Mem_Settings = Properties.getValue("TideLat");
         TideLon_Mem_Settings = Properties.getValue("TideLon");
         SunLat_Mem_Settings = Properties.getValue("SunLat");
         SunLon_Mem_Settings = Properties.getValue("SunLon");
+        MoonHemisNorth_Mem_Settings = Properties.getValue("MoonHemisNorth");
+        DawnFunction_Mem_Settings = Properties.getValue("DawnFunction");
 
         TaskerFunction_Mem_Settings = Properties.getValue("TaskerFunction");
         Storage.setValue("TaskerFunction",TaskerFunction_Mem_Settings);
@@ -155,27 +149,40 @@ class MoonTideView extends WatchUi.WatchFace {
             // @@@@@@@@@@@@/############
             
             // ### Steps:
-            var Steps = ActivityMonitor.getInfo().steps;
+            var Steps = ActivityMonitor.getInfo().steps.toDouble()/ActivityMonitor.getInfo().stepGoal.toDouble();
             if (Steps != Steps_Mem) {
                 Steps_Mem = Steps;
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
-                dc.drawText(88, 162, Graphics.FONT_LARGE, Steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                var Stps = (120*Steps).toNumber();
+                if (Stps > 168) {Stps = 168;}
+                dc.fillRectangle(20, 141, (120*Steps).toNumber(), 4);
+            //    dc.drawText(88, 162, Graphics.FONT_LARGE, Steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
             }
 
             // ### Stairs:
-            var Floors = ActivityMonitor.getInfo().floorsClimbed;
+            var Floors = ActivityMonitor.getInfo().floorsClimbed.toDouble()/ActivityMonitor.getInfo().floorsClimbedGoal.toDouble();
             if (Floors != Floors_Mem) {
                 Floors_Mem = Floors;
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
-                dc.drawText(88, 14, Graphics.FONT_LARGE, Floors.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                var Flrs = (Floors*10.0).toNumber();
+                if (Flrs > 13) {Flrs = 13;}
+                for (var i=0;(i<Flrs);i+=1){
+                    dc.fillRectangle(70+(i*3), 40-(i*3), 8, 4);
+                }
+            //    dc.drawText(88, 14, Graphics.FONT_LARGE, Floors.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
             }
 
             // ### TaskerData
             if (TaskerFunction_Mem_Settings == true) {
-                if (TaskerData_Mem.equals(TaskerData_Mem_Old) ==  false) { //TaskerData_Mem
-                    TaskerData_Mem_Old = TaskerData_Mem;
+                //if (TaskerDataRx ==  true) { // Comparing with old data is a stuff up at least this way it will only be once in 5min
+                if (TaskerData_Mem.toCharArray().equals(TaskerDataOld_Mem) == false) {
+                    TaskerDataOld_Mem = TaskerData_Mem.toCharArray();
+                //    TaskerDataRx = false;
+                    dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
+                    dc.fillRectangle(0, 150, 188, 38);
                     dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
-                    dc.drawText(2, 135, Graphics.FONT_SMALL, TaskerData_Mem , Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
+                //    dc.drawText(2, 135, Graphics.FONT_SMALL, TaskerData_Mem , Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
+                    dc.drawText(88, 162, Graphics.FONT_LARGE, TaskerData_Mem , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
                 }
             }
 
@@ -216,24 +223,32 @@ class MoonTideView extends WatchUi.WatchFace {
                 //System.println("PositionCheck");
                 
                 // @@@ POSTION check coordinates to use
-                if ((TideLat_Mem_Settings == 100) | (SunLat_Mem_Settings == 100)){
+                if ((TideLat_Mem_Settings == 100) | (SunLat_Mem_Settings == 100)){ // only if needed
                     if (Activity.getActivityInfo().currentLocation != null){
                         //System.println("Found Required Position");
                         var Cur = Activity.getActivityInfo().currentLocation.toDegrees();
                         var CurLat = Cur[0];
                         var CurLon = Cur[1];
-                        if ((CurLat_Mem != CurLat) | (CurLon_Mem != CurLon)){ // only store if not the same
-                            CurLat_Mem = CurLat;
-                            CurLon_Mem = CurLon;
-                            if (TideLat_Mem_Settings == 100){ 
+                        if ((CurLat_Mem != CurLat) | (CurLon_Mem != CurLon)){ // only if not the same
+                            if ((CurLat != 0) and (CurLon != 0)) {
+                                CurLat_Mem = CurLat;
+                                CurLon_Mem = CurLon;
+                                if (TideLat_Mem_Settings == 100){ 
                                 //NeedTided_Mem = true; // should actully request new tides... but concerned about battery and data
-                                Storage.setValue("TideLat",CurLat); // using mem does not work in bg
-                                Storage.setValue("TideLon",CurLon); // using mem does not work in bg
-                            }
-                            if (SunLat_Mem_Settings == 100){
-                                SunLat_Mem = CurLat;
-                                SunLon_Mem = CurLon;
-                                NeedNewSunRiseSet_Mem = true;
+                                    Storage.setValue("TideLat",CurLat); // using mem does not work in bg
+                                    Storage.setValue("TideLon",CurLon); // using mem does not work in bg
+                                }
+                                if (SunLat_Mem_Settings == 100){
+                                    SunLat_Mem = CurLat;
+                                    SunLon_Mem = CurLon;
+                                    NeedNewSunRiseSet_Mem = true;
+                                }
+                                if (Storage.getValue("CurrentLat" != CurLat_Mem)) { //- Minimize writing.
+                                    Storage.setValue("CurrentLat", CurLat_Mem);
+                                }
+                                if (Storage.getValue("CurrentLon" != CurLon_Mem)) { //- Minimize writing.
+                                    Storage.setValue("CurrentLon", CurLon_Mem);
+                                }
                             }
                         }
                     }
@@ -335,8 +350,13 @@ class MoonTideView extends WatchUi.WatchFace {
                 var TideTimeOffset = System.getClockTime().timeZoneOffset;
 
                 var NeedTides = false;
+                if (TideHighIndex_Mem < 0){ // new tides from web
+                    TideHighIndex_Mem = 0;
+                    TideLowIndex_Mem = 0;
+                    NeedFullRedraw = true;
+                }
 
-                if ((TideCheckTime > Tides_Mem[0][TideHighIndex_Mem]) & (TideHighIndex_Mem<19)) { 
+                while ((TideCheckTime > Tides_Mem[0][TideHighIndex_Mem]) & (TideHighIndex_Mem<19)) { 
                     TideHighIndex_Mem +=1;
                     NeedFullRedraw = true;
                 }
@@ -344,7 +364,7 @@ class MoonTideView extends WatchUi.WatchFace {
                 var Tide = (Tides_Mem[0][TideHighIndex_Mem] + TideTimeOffset)/(12.0*60*60);
                 HighTide = Tide - Math.floor(Tide); // 0 to one as around the clock once => 12 hr
 
-                if ((TideCheckTime > Tides_Mem[1][TideLowIndex_Mem]) & (TideLowIndex_Mem<19)) { 
+                while ((TideCheckTime > Tides_Mem[1][TideLowIndex_Mem]) & (TideLowIndex_Mem<19)) { 
                     TideLowIndex_Mem+=1; 
                     NeedFullRedraw = true;
                 }
@@ -545,12 +565,29 @@ class MoonTideView extends WatchUi.WatchFace {
                 // ### Need to draw these after  (ath the end) fulredraw an fullredraw will wipe them
 
                 // ### STEPS after fullredraw
-                dc.drawText(88, 162, Graphics.FONT_LARGE, Steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                dc.drawRectangle(20,140,120,6);
+                dc.drawLine(139,135,139,151);
+                dc.drawRectangle(140, 141, 20, 4);
+                var Stps = (120*Steps).toNumber();
+                if (Stps > 168) {Stps = 168;}
+                dc.fillRectangle(20, 141, (120*Steps).toNumber(), 4);
+                //dc.drawText(88, 162, Graphics.FONT_LARGE, Steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+
                 // ### FLOORS after fullredraw
-                dc.drawText(88, 14, Graphics.FONT_LARGE, Floors.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                //dc.drawText(88, 14, Graphics.FONT_LARGE, Floors.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                for (var i=0;i<12;i+=1) {
+                    dc.drawRectangle(70+(i*3), 40-(i*3), 8, 4);
+                }
+                dc.drawLine(65+(9*3), 40-(9*3), 70+5+(9*3)+8, 40-(9*3));
+                var Flrs = (Floors*10.0).toNumber();
+                if (Flrs >= 13) {Flrs = 13;}
+                for (var i=0;(i<Flrs);i+=1){
+                    dc.fillRectangle(70+(i*3), 40-(i*3), 8, 4);
+                }
                 // ### TASKER_DATA after fullredraw
                 if (TaskerFunction_Mem_Settings == true) {
-                    dc.drawText(2, 135, Graphics.FONT_SMALL, TaskerData_Mem , Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
+                //    dc.drawText(2, 135, Graphics.FONT_SMALL, TaskerData_Mem , Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
+                    dc.drawText(88, 162, Graphics.FONT_LARGE, TaskerData_Mem , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
                 }
 
             } // NeedFullRedraw
@@ -567,20 +604,8 @@ class MoonTideView extends WatchUi.WatchFace {
     // Called when this View is removed from the screen. Save the
     // state of this View here. This includes freeing resources from
     // memory.
-    function onHide() as Void {
+    function onHide() as Void { // does not seem to work for Watch Face
         //System.println("MoonTideView.onHide");           // ########### D E B U G ###############         
-        if (Storage.getValue("CurrentLat" != CurLat_Mem)) { //- Minimize writing.
-            Storage.setValue("CurrentLat", CurLat_Mem);
-        }
-        if (Storage.getValue("CurrentLon" != CurLon_Mem)) { //- Minimize writing.
-            Storage.setValue("CurrentLon", CurLon_Mem);
-        }
-        if (Storage.getValue("TideLowIndex") != TideLowIndex_Mem) {
-            Storage.setValue("TideLowIndex", TideLowIndex_Mem);
-        }
-        if (Storage.getValue("TideHighIndex") != TideHighIndex_Mem) {
-            Storage.setValue("TideHighIndex", TideHighIndex_Mem);
-        }
     }
 
     // The user has just looked at their watch. Timers and animations may be started here.
