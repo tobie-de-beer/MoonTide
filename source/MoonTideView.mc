@@ -22,6 +22,8 @@ class MoonTideView extends WatchUi.WatchFace {
     var Floors_Mem = -1;
     var Steps_Mem = -1;
     var Battery_Mem = -1;
+    var TaskerDataOld_Mem = " ".toCharArray();
+    var ActMin_Mem = -1;
 
     var NeedNewSunRiseSet_Mem = true;
     var Today_Mem = Time.today().subtract(new Time.Duration(1000000)).value();
@@ -33,7 +35,6 @@ class MoonTideView extends WatchUi.WatchFace {
     var SolarArray_Mem as Array<Lang.Number> = [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1] as Array<Lang.Number>;
     var SolarInd_Mem = 0;
     var CloseToDawn_Mem = true;
-    var TaskerDataOld_Mem = " ".toCharArray();
 
     function initialize() {
         WatchFace.initialize();
@@ -155,7 +156,7 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
                 var Stps = (120*Steps).toNumber();
                 if (Stps > 168) {Stps = 168;}
-                dc.fillRectangle(20, 141, (120*Steps).toNumber(), 4);
+                dc.fillRectangle(20, 141, Stps, 4);
             //    dc.drawText(88, 162, Graphics.FONT_LARGE, Steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
             }
 
@@ -185,6 +186,16 @@ class MoonTideView extends WatchUi.WatchFace {
                     dc.drawText(88, 162, Graphics.FONT_LARGE, TaskerData_Mem , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
                 }
             }
+
+            // ### ACTIVITY MINUTES
+            var ActMin = ActivityMonitor.getInfo().activeMinutesWeek.total.toDouble()/ActivityMonitor.getInfo().activeMinutesWeekGoal.toDouble();
+            if (ActMin != ActMin_Mem) {
+                ActMin_Mem = ActMin;
+                var ActM = (40*ActMin).toNumber();
+                if (ActM > 55) {ActM = 55;}
+                dc.fillRectangle(2, 126, ActM, 4);
+            }
+
 
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // @@ C A L C U L A T I O N S : @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -570,7 +581,7 @@ class MoonTideView extends WatchUi.WatchFace {
                 dc.drawRectangle(140, 141, 20, 4);
                 var Stps = (120*Steps).toNumber();
                 if (Stps > 168) {Stps = 168;}
-                dc.fillRectangle(20, 141, (120*Steps).toNumber(), 4);
+                dc.fillRectangle(20, 141, Stps, 4);
                 //dc.drawText(88, 162, Graphics.FONT_LARGE, Steps.toString() , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
 
                 // ### FLOORS after fullredraw
@@ -589,6 +600,15 @@ class MoonTideView extends WatchUi.WatchFace {
                 //    dc.drawText(2, 135, Graphics.FONT_SMALL, TaskerData_Mem , Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
                     dc.drawText(88, 162, Graphics.FONT_LARGE, TaskerData_Mem , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
                 }
+                // ## ACTIVITY MINUTES
+                dc.drawRectangle(2,125,40,6);
+                dc.drawLine(41,120,41,136);
+                dc.drawRectangle(42, 126, 10, 4);
+                var ActM = (40*ActMin).toNumber();
+                if (ActM > 55) {ActM = 55;}
+                dc.fillRectangle(2, 126, ActM, 4);
+                
+
 
             } // NeedFullRedraw
 
