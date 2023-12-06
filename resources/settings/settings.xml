@@ -7,8 +7,10 @@
         <property id="SunLon" type="double">0</property>
         <property id="MoonHemisNorth" type="boolean">false</property>
         <property id="DawnFunction" type="boolean">false</property>
+        <property id="WebPeriod" type="number">15</property>
         <property id="TaskerFunction" type="boolean">false</property>
         <property id="TaskerPage" type="string">http://127.0.0.1:1821/MoonTide</property>
+        <property id="CustomText" type="string">MoonTide</property>
     </properties>
 
     <settings>
@@ -33,10 +35,16 @@
         <setting propertyKey="@Properties.DawnFunction" title="Sunrise/Sunset at Dawn (animation)">
             <settingConfig type="boolean" required="true"/>
         </setting>
+        <setting propertyKey="@Properties.WebPeriod" title="Period between Web Requests (Minutes (Min:5,Max:1440)) (needs App/WF Restart)">
+            <settingConfig type="numeric" required="true"  min="5" max="1440"/>
+        </setting>
         <setting propertyKey="@Properties.TaskerFunction" title="Enable Data from Tasker/WebPage">
             <settingConfig type="boolean" required="true"/>
         </setting>
         <setting propertyKey="@Properties.TaskerPage" title="Tasker/Web Page (Must produce less than 10 chars)">
+            <settingConfig type="alphaNumeric" required="true" />
+        </setting>
+        <setting propertyKey="@Properties.CustomText" title="CustomText at bottom of screen, if Tasker/Web Page is not used">
             <settingConfig type="alphaNumeric" required="true" />
         </setting>
     </settings>

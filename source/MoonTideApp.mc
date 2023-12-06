@@ -21,6 +21,7 @@ var Tides_Mem as Array<Array<Number>> = [[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1
 var TideLowIndex_Mem = 0;
 var TideHighIndex_Mem = 0;
 var TaskerData_Mem = "-" as String;
+var CustomText_Mem = "-" as String;
 //var TaskerDataRx = false as Boolean;
 
 (:background)
@@ -45,7 +46,9 @@ class MoonTideApp extends Application.AppBase {
     function getInitialView() as Array<Views or InputDelegates>? {
         //System.println("MoonTideApp.getInitialView");       // ########### D E B U G ###############
         if(Toybox.System has :ServiceDelegate) {
-            Background.registerForTemporalEvent(new Time.Duration(5*60)); // every five minmutes - fastest
+            var WebPeriod = Properties.getValue("WebPeriod");
+            //System.println(WebPeriod);
+            Background.registerForTemporalEvent(new Time.Duration(WebPeriod*60)); // every five minmutes - fastest
         }
         return [ new MoonTideView() ] as Array<Views or InputDelegates>;
     }
@@ -90,6 +93,7 @@ class MoonTideApp extends Application.AppBase {
         SunLon_Mem_Settings = Properties.getValue("SunLon");
         MoonHemisNorth_Mem_Settings = Properties.getValue("MoonHemisNorth");
         DawnFunction_Mem_Settings = Properties.getValue("DawnFunction");
+        CustomText_Mem = Properties.getValue("CustomText");
         // these are used in the background process - currently I cannot access changes on memory - use storage
         TaskerFunction_Mem_Settings = Properties.getValue("TaskerFunction");
         Storage.setValue("TaskerFunction",TaskerFunction_Mem_Settings);

@@ -213,6 +213,7 @@ class MoonTideView extends WatchUi.WatchFace {
                 newSettings_Mem = false;
                 Storage.setValue("NeedTides",true); // using mem does not work in bg
                 NeedFullRedraw = true;
+                NeedNewSunRiseSet_Mem = true; // sun Position might have changed
             }
 
             // @@@ SOLAR -- always (every minute)
@@ -599,6 +600,9 @@ class MoonTideView extends WatchUi.WatchFace {
                 if (TaskerFunction_Mem_Settings == true) {
                 //    dc.drawText(2, 135, Graphics.FONT_SMALL, TaskerData_Mem , Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
                     dc.drawText(88, 162, Graphics.FONT_LARGE, TaskerData_Mem , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                }
+                else {
+                    dc.drawText(88, 162, Graphics.FONT_TINY, CustomText_Mem , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
                 }
                 // ## ACTIVITY MINUTES
                 dc.drawRectangle(2,125,40,6);

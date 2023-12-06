@@ -9,9 +9,8 @@
     <iq:application id="077394ca-561c-4488-b3d6-5ce7011d3483" type="watchface" name="@Strings.AppName" entry="MoonTideApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.2.0"> 
     
     <!-- Private -->
-    <!--<iq:application id="8113b29f-6d4f-48bd-bbd4-3f374297db64" type="watchface" name="@Strings.AppName" entry="MoonTideApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.2.0">
-    -->
-        
+    <!-- <iq:application id="8113b29f-6d4f-48bd-bbd4-3f374297db64" type="watchface" name="@Strings.AppName" entry="MoonTideApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.2.0">
+    -->        
         <!--
             Use the following from the Visual Studio Code comand palette to edit
             the build targets:
