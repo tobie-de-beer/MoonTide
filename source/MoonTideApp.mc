@@ -15,13 +15,14 @@ var SunLon_Mem_Settings = 0;
 var MoonHemisNorth_Mem_Settings = false;
 var DawnFunction_Mem_Settings = false;
 var TaskerFunction_Mem_Settings = false;
+var CustomText_Mem_Settings = "propErr"; 
+var WebDebug_Mem_Settings = false;
 var newSettings_Mem = false;
 var Tides_Mem as Array<Array<Number>> = [[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1],[1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1]] as Array<Array<Number>>;
 
 var TideLowIndex_Mem = 0;
 var TideHighIndex_Mem = 0;
-var TaskerData_Mem = "-" as String;
-var CustomText_Mem = "-" as String;
+var TaskerData_Mem = "notYet" as String;
 //var TaskerDataRx = false as Boolean;
 
 (:background)
@@ -75,7 +76,9 @@ class MoonTideApp extends Application.AppBase {
                 if (Storage.getValue("CurrentLon" != CurLon_Mem)) { //- Minimize writing.
                     Storage.setValue("CurrentLon", CurLon_Mem);
                 }
-                TaskerData_Mem = "Tides";
+                if (WebDebug_Mem_Settings == true) {
+                    TaskerData_Mem = "Tides";
+                }
             }   
             if (data instanceof String) {
                 TaskerData_Mem = data;
@@ -93,9 +96,10 @@ class MoonTideApp extends Application.AppBase {
         SunLon_Mem_Settings = Properties.getValue("SunLon");
         MoonHemisNorth_Mem_Settings = Properties.getValue("MoonHemisNorth");
         DawnFunction_Mem_Settings = Properties.getValue("DawnFunction");
-        CustomText_Mem = Properties.getValue("CustomText");
-        // these are used in the background process - currently I cannot access changes on memory - use storage
         TaskerFunction_Mem_Settings = Properties.getValue("TaskerFunction");
+        CustomText_Mem_Settings = Properties.getValue("CustomText");
+        WebDebug_Mem_Settings = Properties.getValue("WebDebug");
+        // these are used in the background process - currently I cannot access changes on memory - use storage
         Storage.setValue("TaskerFunction",TaskerFunction_Mem_Settings);
         var TaskerPage = Properties.getValue("TaskerPage");
         Storage.setValue("TaskerPage",TaskerPage);

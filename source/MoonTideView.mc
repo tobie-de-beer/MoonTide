@@ -93,10 +93,17 @@ class MoonTideView extends WatchUi.WatchFace {
         if (Storage.getValue("NeedTides") == null) {
             Storage.setValue("NeedTides",true);
         }
+        if (Storage.getValue("TaskerData") == null) {
+            Storage.setValue("TaskerData", "noMem");
+        }
+
         // Settings:
         CurLat_Mem = Storage.getValue("CurrentLat");
         CurLon_Mem = Storage.getValue("CurrentLon");
         Tides_Mem = Storage.getValue("TideData") as Array<Array<Number>>;
+        if (WebDebug_Mem_Settings == false) {
+            TaskerData_Mem = Storage.getValue("TaskerData");
+        }
         TideLowIndex_Mem = 0;
         TideHighIndex_Mem = 0;
 
@@ -107,8 +114,10 @@ class MoonTideView extends WatchUi.WatchFace {
         SunLon_Mem_Settings = Properties.getValue("SunLon");
         MoonHemisNorth_Mem_Settings = Properties.getValue("MoonHemisNorth");
         DawnFunction_Mem_Settings = Properties.getValue("DawnFunction");
-
         TaskerFunction_Mem_Settings = Properties.getValue("TaskerFunction");
+        CustomText_Mem_Settings = Properties.getValue("CustomText");
+        WebDebug_Mem_Settings = Properties.getValue("WebDebug");
+
         Storage.setValue("TaskerFunction",TaskerFunction_Mem_Settings);
         var TaskerPage = Properties.getValue("TaskerPage");
         Storage.setValue("TaskerPage",TaskerPage);
@@ -178,7 +187,7 @@ class MoonTideView extends WatchUi.WatchFace {
                 //if (TaskerDataRx ==  true) { // Comparing with old data is a stuff up at least this way it will only be once in 5min
                 if (TaskerData_Mem.toCharArray().equals(TaskerDataOld_Mem) == false) {
                     TaskerDataOld_Mem = TaskerData_Mem.toCharArray();
-                //    TaskerDataRx = false;
+                    Storage.setValue("TaskerData", TaskerData_Mem);
                     dc.setColor(Graphics.COLOR_BLACK,Graphics.COLOR_WHITE);
                     dc.fillRectangle(0, 150, 188, 38);
                     dc.setColor(Graphics.COLOR_WHITE,Graphics.COLOR_BLACK);
@@ -602,7 +611,7 @@ class MoonTideView extends WatchUi.WatchFace {
                     dc.drawText(88, 162, Graphics.FONT_LARGE, TaskerData_Mem , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
                 }
                 else {
-                    dc.drawText(88, 162, Graphics.FONT_TINY, CustomText_Mem , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+                    dc.drawText(88, 162, Graphics.FONT_TINY, CustomText_Mem_Settings , Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
                 }
                 // ## ACTIVITY MINUTES
                 dc.drawRectangle(2,125,40,6);

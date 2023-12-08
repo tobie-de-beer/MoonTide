@@ -11,6 +11,7 @@
         <property id="TaskerFunction" type="boolean">false</property>
         <property id="TaskerPage" type="string">http://127.0.0.1:1821/MoonTide</property>
         <property id="CustomText" type="string">MoonTide</property>
+        <property id="WebDebug" type="boolean">false</property>
     </properties>
 
     <settings>
@@ -46,6 +47,9 @@
         </setting>
         <setting propertyKey="@Properties.CustomText" title="CustomText at bottom of screen, if Tasker/Web Page is not used">
             <settingConfig type="alphaNumeric" required="true" />
+        </setting>
+        <setting propertyKey="@Properties.WebDebug" title="Enable Debug for Tasker/Web Process">
+            <settingConfig type="boolean" required="true"/>
         </setting>
     </settings>
 </resources>

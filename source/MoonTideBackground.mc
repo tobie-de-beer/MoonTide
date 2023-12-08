@@ -50,25 +50,40 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
                     Background.exit([HighTide,LowTide]);
                 }
                 else {
-                        Background.exit(null);
+                        Background.exit("tidesErr");
                 }
             }
             else {
                 if (data instanceof String) {
-                    if (data.length() < 10) {
+                    if (data.length() < 11) {
                         Background.exit(data.toString()); 
                     }
                     else {
-                        Background.exit(null);
+                        if (WebDebug_Mem_Settings == true){
+                            Background.exit("toLong");
+                        }
+                        else{
+                            Background.exit(null);
+                        }
                     }
                 }
                 else {
-                    Background.exit(null);
+                    if (WebDebug_Mem_Settings == true){
+                        Background.exit("unKnown");
+                    }
+                    else{
+                        Background.exit(null);
+                    }
                 }
             }
         }
         else {
-            Background.exit(null);        
+            if (WebDebug_Mem_Settings == true){
+                Background.exit("webErr");
+            }
+            else{
+                Background.exit(null);
+            }
         }    
     }
 
@@ -116,7 +131,12 @@ class MoonTideServiceDelegate extends Toybox.System.ServiceDelegate {
             } //NeedTides
         }
         else {
-            Background.exit(null);
+            if (WebDebug_Mem_Settings == true){
+                Background.exit("notCon");
+            }
+            else{
+                Background.exit(null);
+            }
         } // Connected
     } // onTemporalEvent
 
