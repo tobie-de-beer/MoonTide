@@ -69,13 +69,6 @@ class MoonTideApp extends Application.AppBase {
                 Storage.setValue("TideLowIndex",0);
                 TideHighIndex_Mem = -1;
                 Storage.setValue("TideHighIndex",0);
-                // store some stuff just in case OnHide() does not work
-                if (Storage.getValue("CurrentLat" != CurLat_Mem)) { //- Minimize writing.
-                    Storage.setValue("CurrentLat", CurLat_Mem);
-                }
-                if (Storage.getValue("CurrentLon" != CurLon_Mem)) { //- Minimize writing.
-                    Storage.setValue("CurrentLon", CurLon_Mem);
-                }
                 if (WebDebug_Mem_Settings == true) {
                     TaskerData_Mem = "Tides";
                 }
